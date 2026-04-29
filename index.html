@@ -738,14 +738,23 @@ function hideLoader(){document.getElementById('loader').style.display='none';}
 
 function atToTask(rec){
   const f=rec.fields;
-  const stMap={'Done':'done','In progress':'work','On review':'review','Idea':'idea','Hold':'hold'};
-  const prMap={'High':'high','Medium':'mid','Low':'low'};
+  const stMap={'Выполнено':'done','В работе':'work','На согласовании':'review','Идея':'idea','Отложено':'hold','Done':'done','In progress':'work','On review':'review','Idea':'idea','Hold':'hold'};
+  const prMap={'Высокий':'high','Средний':'mid','Низкий':'low','High':'high','Medium':'mid','Low':'low'};
   return{id:rec.id,atId:rec.id,name:f.Name||'',sector:f.Sector||'Операционка',who:f.Who||'Павел',deadline:f.Deadline||'',prio:prMap[f.Priority]||'mid',status:stMap[f.Status]||'work',tags:f.Tags?f.Tags.split(',').map(t=>t.trim()).filter(Boolean):[],overdue:f.Overdue||false};
 }
 function taskToAt(t){
-  const stMap={done:'Done',work:'In progress',review:'On review',idea:'Idea',hold:'Hold'};
+  const stMap={done:'Done',work:'In progress',review:'In progress',idea:'To do',hold:'To do'};
   const prMap={high:'High',mid:'Medium',low:'Low'};
-  return{Name:t.name,Sector:t.sector,Who:t.who,Deadline:t.deadline||null,Priority:prMap[t.prio]||'Medium',Status:stMap[t.status]||'In progress',Tags:t.tags?t.tags.join(', '):'',Overdue:t.overdue||false};
+  const fields = {
+    Name:     t.name||'Без названия',
+    Status:   stMap[t.status]||'In progress',
+    Priority: prMap[t.prio]||'Medium',
+    Who:      t.who||'',
+    Sector:   t.sector||'',
+    Tags:     t.tags ? t.tags.join(', ') : '',
+  };
+  if(t.deadline) fields.Deadline = t.deadline;
+  return fields;
 }
 
 async function loadFromAirtable(){
@@ -764,11 +773,27 @@ async function loadFromAirtable(){
 }
 
 async function createTaskInAT(task){
-  try{const res=await fetch(AT_URL,{method:'POST',headers:AT_H,body:JSON.stringify({records:[{fields:taskToAt(task)}]})});const data=await res.json();if(data.records?.[0]){task.atId=data.records[0].id;task.id=data.records[0].id;}}catch(e){}
+  try{
+    const res=await fetch(AT_URL,{method:'POST',headers:AT_H,body:JSON.stringify({records:[{fields:taskToAt(task)}]})});
+    const data=await res.json();
+    if(data.records?.[0]){
+      task.atId=data.records[0].id;
+      task.id=data.records[0].id;
+      console.log('✓ Airtable: задача сохранена', task.name);
+    } else if(data.error){
+      console.error('Airtable error:', data.error.type, data.error.message);
+      toast('⚠️ Ошибка: '+data.error.message);
+    }
+  }catch(e){ console.error('createTaskInAT:', e); toast('⚠️ Нет связи с базой'); }
 }
 async function updateTaskInAT(task){
   if(!task.atId)return;
-  try{await fetch(`${AT_URL}/${task.atId}`,{method:'PATCH',headers:AT_H,body:JSON.stringify({fields:taskToAt(task)})});}catch(e){}
+  try{
+    const res=await fetch(`${AT_URL}/${task.atId}`,{method:'PATCH',headers:AT_H,body:JSON.stringify({fields:taskToAt(task)})});
+    const data=await res.json();
+    if(data.error) console.error('updateTaskInAT error:', data.error.message);
+    else console.log('✓ Airtable: задача обновлена', task.name);
+  }catch(e){ console.error('updateTaskInAT:', e); }
 }
 async function deleteTaskInAT(atId){
   if(!atId)return;
