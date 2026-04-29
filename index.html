@@ -382,16 +382,57 @@ html,body{height:100%;overflow:hidden;font-family:'Geologica',sans-serif;backgro
 .delegate-av{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0}
 .delegate-name{font-size:13px;font-weight:500}
 .delegate-role{font-size:11px;color:var(--muted);font-weight:300}
+/* PIN */
+.pin-dot{width:14px;height:14px;border-radius:50%;border:1.5px solid rgba(255,255,255,.2);transition:all .2s}
+.pin-dot.filled{background:linear-gradient(135deg,var(--gold),var(--amber));border-color:transparent;box-shadow:0 0 14px rgba(212,165,116,.42)}
+.pin-dot.error{background:var(--red);border-color:transparent;box-shadow:0 0 14px rgba(184,96,112,.42);animation:shake .3s ease}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.pin-keyboard{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;max-width:256px;margin:0 auto}
+.pin-key{background:var(--glass);border:1px solid var(--glass-b);border-radius:16px;padding:17px;font-size:22px;font-weight:500;cursor:pointer;text-align:center;transition:all .2s;user-select:none;backdrop-filter:blur(8px);box-shadow:var(--gshadow)}
+.pin-key:active{background:var(--glass2);transform:scale(.91);box-shadow:var(--glow-gold);border-color:rgba(212,165,116,.35)}
+.pin-key.del{font-size:18px;color:var(--muted)}
+.pin-key.empty{visibility:hidden}
 </style>
 </head>
 <body>
 
-<!-- LOGIN SCREEN -->
+<!-- LOGIN / PIN SCREEN -->
 <div class="login-screen" id="login-screen">
-  <div class="login-logo">Lady Stretch</div>
-  <div class="login-sub">Система управления</div>
-  <div class="login-title">Выберите кто вы:</div>
-  <div class="login-list" id="login-list"></div>
+
+  <!-- Step 1: Choose who you are -->
+  <div id="login-step-choose" style="width:100%;max-width:340px;display:flex;flex-direction:column;align-items:center">
+    <div class="login-logo">Lady Stretch</div>
+    <div class="login-sub">Система управления</div>
+    <div class="login-title" id="login-title-text">Выберите кто вы</div>
+    <div class="login-list" id="login-list"></div>
+    <div style="margin-top:20px;font-size:12px;color:var(--muted);cursor:pointer;letter-spacing:.3px" onclick="showPinLogin()">Уже есть PIN → войти</div>
+  </div>
+
+  <!-- Step 2: Set PIN (first time) -->
+  <div id="login-step-pin" style="display:none;width:100%;max-width:300px;text-align:center;align-items:center;flex-direction:column">
+    <div id="pin-av-preview" style="width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:#fff;margin:0 auto 14px;box-shadow:0 4px 20px rgba(0,0,0,.4)"></div>
+    <div class="login-title" id="pin-title" style="margin-bottom:6px">Придумайте PIN-код</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:28px;font-weight:300" id="pin-sub">4 цифры — только для вас</div>
+    <div id="pin-dots" style="display:flex;gap:14px;justify-content:center;margin-bottom:32px">
+      <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
+    </div>
+    <div class="pin-keyboard" id="pin-keyboard"></div>
+    <div style="margin-top:20px;font-size:12px;color:var(--muted);cursor:pointer;letter-spacing:.3px" onclick="backToChoose()">← Назад</div>
+  </div>
+
+  <!-- Step 3: Enter PIN (returning) -->
+  <div id="login-step-enter" style="display:none;width:100%;max-width:300px;text-align:center;align-items:center;flex-direction:column">
+    <div id="enter-av" style="width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:#fff;margin:0 auto 12px;box-shadow:0 4px 20px rgba(0,0,0,.4)"></div>
+    <div class="login-title" id="enter-name-lbl" style="margin-bottom:6px">Введите PIN</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:28px;font-weight:300">Ваш личный код доступа</div>
+    <div id="enter-dots" style="display:flex;gap:14px;justify-content:center;margin-bottom:10px">
+      <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
+    </div>
+    <div id="pin-error" style="height:20px;font-size:12px;color:var(--red);margin-bottom:10px;font-weight:300"></div>
+    <div class="pin-keyboard" id="pin-keyboard2"></div>
+    <div style="margin-top:20px;font-size:12px;color:var(--muted);cursor:pointer;letter-spacing:.3px" onclick="resetPin()">Сбросить PIN</div>
+  </div>
+
 </div>
 
 <div id="app" style="display:none">
@@ -776,19 +817,160 @@ function canSeeTask(t){
 // ═══════════════════════════════════════════════════════
 // LOGIN
 // ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
+// PIN LOGIN SYSTEM
+// ═══════════════════════════════════════════════════════
+let pinBuffer = '';
+let pinMode = '';
+let pinTargetUser = null;
+let pinSetFirst = '';
+
 function renderLogin(){
   const saved = localStorage.getItem('ls_user');
   if(saved){
     const u = USERS.find(x=>x.name===saved);
-    if(u){login(u);return;}
+    const pin = localStorage.getItem('ls_pin_'+saved);
+    if(u && pin){ showEnterPin(u); return; }
+    if(u){ showSetPin(u); return; }
   }
-  const list = document.getElementById('login-list');
-  list.innerHTML = USERS.map(u=>`
-    <div class="login-user-btn" onclick="login(USERS.find(x=>x.name==='${u.name}'))">
+  showChoose();
+}
+
+function showChoose(){
+  _hide('login-step-pin'); _hide('login-step-enter');
+  _show('login-step-choose');
+  document.getElementById('login-title-text').textContent = 'Выберите кто вы';
+  document.getElementById('login-list').innerHTML = USERS.map(u=>`
+    <div class="login-user-btn" onclick="selectUser('${u.name}')">
       <div class="login-av" style="background:${u.grad}">${u.init}</div>
       <div><div class="login-name">${u.name}</div><div class="login-role">${u.role}</div></div>
     </div>`).join('');
 }
+
+function showPinLogin(){
+  _show('login-step-choose');
+  _hide('login-step-pin'); _hide('login-step-enter');
+  document.getElementById('login-title-text').textContent = 'Войти по PIN';
+  const hasAny = USERS.some(u=>localStorage.getItem('ls_pin_'+u.name));
+  document.getElementById('login-list').innerHTML = USERS.map(u=>{
+    const hasPin = !!localStorage.getItem('ls_pin_'+u.name);
+    if(!hasPin) return '';
+    return `<div class="login-user-btn" onclick="showEnterPin(USERS.find(x=>x.name==='${u.name}'))">
+      <div class="login-av" style="background:${u.grad}">${u.init}</div>
+      <div><div class="login-name">${u.name}</div><div class="login-role">${u.role}</div></div>
+      <div style="margin-left:auto;font-size:20px;opacity:.5">→</div>
+    </div>`;
+  }).join('') || '<div style="font-size:13px;color:var(--muted);text-align:center;padding:20px;font-weight:300">Нет сохранённых PIN-кодов</div>';
+}
+
+function selectUser(name){
+  const u = USERS.find(x=>x.name===name);
+  if(!u) return;
+  const existingPin = localStorage.getItem('ls_pin_'+name);
+  if(existingPin){ showEnterPin(u); }
+  else { showSetPin(u); }
+}
+
+function showSetPin(u){
+  pinTargetUser=u; pinMode='set'; pinSetFirst=''; pinBuffer='';
+  _hide('login-step-choose'); _hide('login-step-enter'); _show('login-step-pin');
+  const av=document.getElementById('pin-av-preview');
+  av.style.background=u.grad; av.textContent=u.init;
+  document.getElementById('pin-title').textContent='Придумайте PIN-код';
+  document.getElementById('pin-sub').textContent=`${u.name}, выберите 4 цифры`;
+  updateDots('pin-dots',0,false);
+  renderKeyboard('pin-keyboard','handleSetPin');
+}
+
+function showEnterPin(u){
+  pinTargetUser=u; pinMode='enter'; pinBuffer='';
+  _hide('login-step-choose'); _hide('login-step-pin'); _show('login-step-enter');
+  const av=document.getElementById('enter-av');
+  av.style.background=u.grad; av.textContent=u.init;
+  document.getElementById('enter-name-lbl').textContent=`Привет, ${u.name}!`;
+  document.getElementById('pin-error').textContent='';
+  updateDots('enter-dots',0,false);
+  renderKeyboard('pin-keyboard2','handleEnterPin');
+}
+
+function renderKeyboard(elId, fnName){
+  const isDel = elId==='pin-keyboard2' ? 'pinDel2' : 'pinDel1';
+  const keys=['1','2','3','4','5','6','7','8','9','','0','⌫'];
+  document.getElementById(elId).innerHTML=keys.map(k=>{
+    if(k==='') return '<div class="pin-key empty"></div>';
+    if(k==='⌫') return `<div class="pin-key del" onclick="${isDel}()">⌫</div>`;
+    return `<div class="pin-key" onclick="${fnName}('${k}')">${k}</div>`;
+  }).join('');
+}
+
+function handleSetPin(digit){
+  if(pinBuffer.length>=4) return;
+  pinBuffer+=digit;
+  updateDots('pin-dots',pinBuffer.length,false);
+  if(pinBuffer.length===4){
+    if(!pinSetFirst){
+      pinSetFirst=pinBuffer; pinBuffer='';
+      document.getElementById('pin-title').textContent='Повторите PIN-код';
+      document.getElementById('pin-sub').textContent='Введите те же 4 цифры';
+      setTimeout(()=>updateDots('pin-dots',0,false),200);
+    } else {
+      if(pinBuffer===pinSetFirst){
+        localStorage.setItem('ls_pin_'+pinTargetUser.name,pinBuffer);
+        localStorage.setItem('ls_user',pinTargetUser.name);
+        login(pinTargetUser);
+      } else {
+        updateDots('pin-dots',4,true);
+        setTimeout(()=>{
+          pinBuffer=''; pinSetFirst='';
+          document.getElementById('pin-title').textContent='Придумайте PIN-код';
+          document.getElementById('pin-sub').textContent='PIN не совпал, попробуйте снова';
+          updateDots('pin-dots',0,false);
+        },700);
+      }
+    }
+  }
+}
+
+function handleEnterPin(digit){
+  if(pinBuffer.length>=4) return;
+  pinBuffer+=digit;
+  updateDots('enter-dots',pinBuffer.length,false);
+  if(pinBuffer.length===4){
+    const saved=localStorage.getItem('ls_pin_'+pinTargetUser.name);
+    if(pinBuffer===saved){
+      localStorage.setItem('ls_user',pinTargetUser.name);
+      login(pinTargetUser);
+    } else {
+      updateDots('enter-dots',4,true);
+      document.getElementById('pin-error').textContent='Неверный PIN, попробуйте снова';
+      setTimeout(()=>{
+        pinBuffer='';
+        document.getElementById('pin-error').textContent='';
+        updateDots('enter-dots',0,false);
+      },700);
+    }
+  }
+}
+
+function pinDel1(){ if(pinBuffer.length>0){pinBuffer=pinBuffer.slice(0,-1);updateDots('pin-dots',pinBuffer.length,false);} }
+function pinDel2(){ if(pinBuffer.length>0){pinBuffer=pinBuffer.slice(0,-1);updateDots('enter-dots',pinBuffer.length,false);} }
+
+function updateDots(elId,count,error){
+  const el=document.getElementById(elId); if(!el) return;
+  el.querySelectorAll('.pin-dot').forEach((d,i)=>{
+    d.classList.toggle('filled',i<count&&!error);
+    d.classList.toggle('error',i<count&&error);
+  });
+}
+
+function backToChoose(){ pinBuffer=''; pinSetFirst=''; showChoose(); }
+function resetPin(){
+  if(pinTargetUser){ localStorage.removeItem('ls_pin_'+pinTargetUser.name); localStorage.removeItem('ls_user'); }
+  pinBuffer=''; pinSetFirst=''; showChoose();
+}
+
+function _show(id){ const el=document.getElementById(id); if(el){el.style.display='flex';} }
+function _hide(id){ const el=document.getElementById(id); if(el){el.style.display='none';} }
 
 function login(u){
   currentUser = u;
@@ -808,10 +990,10 @@ function login(u){
 
 function logout(){
   localStorage.removeItem('ls_user');
-  currentUser=null;
+  currentUser=null; pinBuffer=''; pinSetFirst=''; pinTargetUser=null;
   document.getElementById('login-screen').classList.remove('hidden');
   document.getElementById('app').style.display='none';
-  renderLogin();
+  showChoose();
 }
 
 // ═══════════════════════════════════════════════════════
