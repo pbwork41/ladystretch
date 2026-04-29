@@ -329,6 +329,10 @@ html,body{height:100%;overflow:hidden;font-family:'Geologica',sans-serif;backgro
 .notif-text{font-size:13px;font-weight:500;line-height:1.4;letter-spacing:.1px}
 .notif-sub{font-size:11px;color:var(--muted);margin-top:3px;font-weight:300}
 
+/* TASK MODE SWITCH */
+.mode-btn{flex:1;text-align:center;padding:7px 12px;border-radius:9px;font-size:12px;font-weight:500;cursor:pointer;color:var(--muted);transition:all .2s;letter-spacing:.2px}
+.mode-btn.active{background:linear-gradient(135deg,var(--violet),var(--rose));color:#fff;box-shadow:0 2px 12px rgba(139,104,200,.3)}
+
 /* PIN */
 .pin-dot{width:14px;height:14px;border-radius:50%;border:1.5px solid rgba(255,255,255,.2);transition:all .2s}
 .pin-dot.filled{background:linear-gradient(135deg,var(--gold),var(--amber));border-color:transparent;box-shadow:0 0 14px rgba(212,165,116,.42)}
@@ -492,8 +496,15 @@ html,body{height:100%;overflow:hidden;font-family:'Geologica',sans-serif;backgro
     <!-- TASKS -->
     <div class="page" id="tab-tasks">
       <div class="sec-head">
-        <div class="sec-title">Задачи</div>
+        <div class="sec-title" id="tasks-page-title">Задачи</div>
         <button class="btn btn-ghost btn-sm sec-ml" onclick="goKanban()">Канбан</button>
+      </div>
+      <!-- Для руководителей: переключатель Мои / Все -->
+      <div id="tasks-mode-switch" style="display:none;margin-bottom:12px">
+        <div style="display:flex;gap:6px;background:rgba(255,255,255,.04);border:1px solid var(--glass-b);border-radius:12px;padding:3px">
+          <div id="mode-mine" class="mode-btn active" onclick="setTaskMode('mine')">Мои задачи</div>
+          <div id="mode-all" class="mode-btn" onclick="setTaskMode('all')">Все задачи</div>
+        </div>
       </div>
       <div class="chips" id="sector-chips"></div>
       <div class="status-pills" id="status-pills"></div>
@@ -791,6 +802,17 @@ let nextTaskId = 1000;
 let nextIdeaId = 1000;
 let filterSector = '';
 let filterStatus = '';
+let taskMode = 'mine'; // 'mine' | 'all' — для руководителей
+
+function setTaskMode(mode){
+  taskMode = mode;
+  document.getElementById('mode-mine')?.classList.toggle('active', mode==='mine');
+  document.getElementById('mode-all')?.classList.toggle('active', mode==='all');
+  // Сектор-чипы только в режиме "все"
+  const sc = document.getElementById('sector-chips');
+  if(sc) sc.style.display = mode==='all' ? 'flex' : 'none';
+  renderTasks();
+}
 let activePanelId = null;
 let delegateVisible = false;
 
@@ -805,13 +827,10 @@ function scoreCalc(i,f,u,c){const s=(i*2+f*2+u)/Math.max(c,1);let label,color,pr
 
 // Visibility: what can current user see?
 function canSeeTask(t){
-  if(!currentUser)return false;
-  if(currentUser.isManager)return true;
-  if(currentUser.isAssistant)return t.who===currentUser.name;
-  // Regular employee: own tasks + sector tasks
-  if(t.who===currentUser.name)return true;
-  if(currentUser.sectors&&currentUser.sectors.includes(t.sector))return true;
-  return false;
+  if(!currentUser) return false;
+  if(currentUser.isManager) return true; // Павел и Владимир видят всё
+  // Все остальные видят ТОЛЬКО свои задачи
+  return t.who === currentUser.name;
 }
 
 // ═══════════════════════════════════════════════════════
@@ -980,17 +999,27 @@ function login(u){
   document.getElementById('cur-av').style.background=u.grad;
   document.getElementById('cur-av').textContent=u.init;
   document.getElementById('cur-name').textContent=u.name;
-  // Show/hide delegate for managers
+  // Delegate and delete — только для руководителей
   const ds = document.getElementById('delegate-section');
   if(ds) ds.style.display = u.isManager?'block':'none';
   const dels = document.getElementById('delete-section');
   if(dels) dels.style.display = u.isManager?'block':'none';
+  // Переключатель режима задач — только для руководителей
+  const modeSwitch = document.getElementById('tasks-mode-switch');
+  if(modeSwitch) modeSwitch.style.display = u.isManager ? 'block' : 'none';
+  // Заголовок задач
+  const tasksTitle = document.getElementById('tasks-page-title');
+  if(tasksTitle) tasksTitle.textContent = u.isManager ? 'Задачи' : 'Мои задачи';
+  // Дефолтный режим
+  taskMode = 'mine';
   loadFromAirtable();
 }
 
 function logout(){
+  // Ничего синхронизировать не нужно — задачи уже сохраняются в Airtable при каждом изменении
   localStorage.removeItem('ls_user');
   currentUser=null; pinBuffer=''; pinSetFirst=''; pinTargetUser=null;
+  tasks=[]; // очищаем локальный кэш
   document.getElementById('login-screen').classList.remove('hidden');
   document.getElementById('app').style.display='none';
   showChoose();
@@ -1114,15 +1143,42 @@ function setStatus(s){filterStatus=s;renderTasks();}
 function renderTasks(){
   renderSectorChips();renderStatusPills();
   const el=document.getElementById('task-list');if(!el)return;
+  const isManager=currentUser?.isManager;
+  const whoF=tasks._whoFilter||'';
+  // Секторные чипы только в режиме "все" для руководителей
+  const sc=document.getElementById('sector-chips');
+  if(sc)sc.style.display=(isManager&&taskMode==='all')?'flex':'none';
   let list=tasks.filter(t=>{
-    if(!canSeeTask(t))return false;
+    if(isManager){
+      if(taskMode==='mine'&&t.who!==currentUser.name)return false;
+    } else {
+      if(t.who!==currentUser.name)return false;
+    }
     if(filterSector&&t.sector!==filterSector)return false;
     if(filterStatus&&t.status!==filterStatus)return false;
+    if(whoF&&t.who!==whoF)return false;
     return true;
   });
   list.sort((a,b)=>(b.pinned||0)-(a.pinned||0)||(b.overdue||0)-(a.overdue||0)||new Date(a.deadline)-new Date(b.deadline));
-  if(!list.length){el.innerHTML=`<div class="empty"><div class="empty-icon">${filterSector||filterStatus?'🔍':'✅'}</div><div class="empty-text">${filterSector||filterStatus?'Нет задач по фильтру':'Нет задач!'}</div></div>`;return;}
-  el.innerHTML=list.map(t=>{const dc=dlCls(t.deadline,t.status);const isMine=t.who===currentUser?.name;return`<div class="task-card${t.overdue?' overdue':''}${isMine?' mine':''}" onclick="openPanel('${t.id}')"><div class="tc-prio" style="background:${PRIO_COL[t.prio]}"></div><div class="tc-body"><div class="tc-name">${t.name}</div><div class="tc-meta"><span class="tag" style="background:${SC[t.sector]||'var(--muted)'}22;color:${SC[t.sector]||'var(--muted)'}">${t.sector.split('/')[0].trim()}</span><span class="tag" style="background:${STATUS_COL[t.status]}22;color:${STATUS_COL[t.status]}">${STATUS_LBL[t.status]}</span>${t.tags.slice(0,1).map(tg=>`<span class="tag t-muted">${tg}</span>`).join('')}${t.overdue?'<span class="tag t-red">!</span>':''}<span class="tc-who">${t.who}</span><span class="tc-dl ${dc}">${fmtDate(t.deadline)}</span></div></div></div>`;}).join('');
+  if(!list.length){el.innerHTML=`<div class="empty"><div style="font-size:36px;opacity:.35;margin-bottom:10px">${filterSector||filterStatus?'○':'✓'}</div><div class="empty-text">${filterSector||filterStatus?'Нет задач по фильтру':'Нет задач!'}</div></div>`;return;}
+  el.innerHTML=list.map(t=>{
+    const dc=dlCls(t.deadline,t.status);
+    const isMine=t.who===currentUser?.name;
+    return`<div class="task-card${t.overdue?' overdue':''}${isMine?' mine':''}" onclick="openPanel('${t.id}')">
+      <div class="tc-prio" style="background:${PRIO_COL[t.prio]}"></div>
+      <div class="tc-body">
+        <div class="tc-name">${t.name}</div>
+        <div class="tc-meta">
+          <span class="tag" style="background:${SC[t.sector]||'var(--muted)'}22;color:${SC[t.sector]||'var(--muted)'}">${t.sector.split('/')[0].trim()}</span>
+          <span class="tag" style="background:${STATUS_COL[t.status]}22;color:${STATUS_COL[t.status]}">${STATUS_LBL[t.status]}</span>
+          ${t.tags.slice(0,1).map(tg=>`<span class="tag t-muted">${tg}</span>`).join('')}
+          ${t.overdue?'<span class="tag t-red">!</span>':''}
+          ${isManager&&taskMode==='all'?`<span class="tc-who">${t.who}</span>`:''}
+          <span class="tc-dl ${dc}">${fmtDate(t.deadline)}</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
 }
 
 // ═══════════════════════════════════════════════════════
@@ -1190,22 +1246,7 @@ function filterByPerson(name){
 
 // Patch renderTasks to support who filter
 const _origRenderTasks=renderTasks;
-function renderTasks(){
-  renderSectorChips();renderStatusPills();
-  const el=document.getElementById('task-list');if(!el)return;
-  const whoF=tasks._whoFilter||'';
-  let list=tasks.filter(t=>{
-    if(!canSeeTask(t))return false;
-    if(filterSector&&t.sector!==filterSector)return false;
-    if(filterStatus&&t.status!==filterStatus)return false;
-    if(whoF&&t.who!==whoF)return false;
-    return true;
-  });
-  if(whoF&&!filterSector&&!filterStatus){}// keep who filter
-  list.sort((a,b)=>(b.pinned||0)-(a.pinned||0)||(b.overdue||0)-(a.overdue||0)||new Date(a.deadline)-new Date(b.deadline));
-  if(!list.length){el.innerHTML=`<div class="empty"><div class="empty-icon">${filterSector||filterStatus||whoF?'🔍':'✅'}</div><div class="empty-text">${filterSector||filterStatus||whoF?'Нет задач по фильтру':'Нет задач!'}</div></div>`;return;}
-  el.innerHTML=list.map(t=>{const dc=dlCls(t.deadline,t.status);const isMine=t.who===currentUser?.name;return`<div class="task-card${t.overdue?' overdue':''}${isMine?' mine':''}" onclick="openPanel('${t.id}')"><div class="tc-prio" style="background:${PRIO_COL[t.prio]}"></div><div class="tc-body"><div class="tc-name">${t.name}</div><div class="tc-meta"><span class="tag" style="background:${SC[t.sector]||'var(--muted)'}22;color:${SC[t.sector]||'var(--muted)'}">${t.sector.split('/')[0].trim()}</span><span class="tag" style="background:${STATUS_COL[t.status]}22;color:${STATUS_COL[t.status]}">${STATUS_LBL[t.status]}</span>${t.tags.slice(0,1).map(tg=>`<span class="tag t-muted">${tg}</span>`).join('')}${t.overdue?'<span class="tag t-red">!</span>':''}<span class="tc-who">${t.who}</span><span class="tc-dl ${dc}">${fmtDate(t.deadline)}</span></div></div></div>`;}).join('');
-}
+
 
 // ═══════════════════════════════════════════════════════
 // NOTIFICATIONS
