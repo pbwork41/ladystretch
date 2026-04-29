@@ -743,6 +743,7 @@ function atToTask(rec){
   return{id:rec.id,atId:rec.id,name:f.Name||'',sector:f.Sector||'Операционка',who:f.Who||'Павел',deadline:f.Deadline||'',prio:prMap[f.Priority]||'mid',status:stMap[f.Status]||'work',tags:f.Tags?f.Tags.split(',').map(t=>t.trim()).filter(Boolean):[],overdue:f.Overdue||false};
 }
 function taskToAt(t){
+  // Только подтверждённые поля Airtable: Name, Status, Priority, Deadline, Who, Sector
   const stMap={done:'Done',work:'In progress',review:'In progress',idea:'To do',hold:'To do'};
   const prMap={high:'High',mid:'Medium',low:'Low'};
   const fields = {
@@ -751,7 +752,6 @@ function taskToAt(t){
     Priority: prMap[t.prio]||'Medium',
     Who:      t.who||'',
     Sector:   t.sector||'',
-    Tags:     t.tags ? t.tags.join(', ') : '',
   };
   if(t.deadline) fields.Deadline = t.deadline;
   return fields;
