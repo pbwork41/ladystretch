@@ -1,0 +1,1857 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Lady Stretch</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Geologica:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ── TOKENS ─────────────────────────────────────────────────────────── */
+:root {
+  --bg:     #0d0e12;
+  --bg2:    #13141a;
+  --bg3:    #1a1c25;
+  --card:   #1e2030;
+  --card2:  #252840;
+  --border: rgba(255,255,255,0.07);
+  --border2:rgba(255,255,255,0.13);
+  --text:   #edeef5;
+  --muted:  #6e7390;
+  --muted2: #454860;
+
+  --gold:   #c9a86c;
+  --gold2:  #e8c898;
+  --pink:   #d4788e;
+  --green:  #5aac80;
+  --blue:   #5e8fe0;
+  --orange: #d4924a;
+  --purple: #8e6cd4;
+  --red:    #d45a5a;
+  --teal:   #4ab8b8;
+
+  --nav-h:  60px;
+  --safe-b: env(safe-area-inset-bottom, 0px);
+}
+
+/* ── RESET ──────────────────────────────────────────────────────────── */
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden;font-family:'Geologica',sans-serif;background:var(--bg);color:var(--text);font-size:14px}
+
+/* ── LAYOUT ─────────────────────────────────────────────────────────── */
+#app{display:flex;flex-direction:column;height:100%;height:100dvh}
+.topbar{
+  flex-shrink:0;
+  background:var(--bg2);
+  border-bottom:1px solid var(--border);
+  padding:12px 16px;
+  display:flex;align-items:center;gap:10px;
+}
+.tb-logo{
+  font-family:'Playfair Display',serif;
+  font-size:16px;font-weight:700;
+  background:linear-gradient(135deg,var(--gold),var(--pink));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+.tb-page{font-size:13px;color:var(--muted);flex:1}
+.tb-right{display:flex;gap:8px;align-items:center}
+.tb-btn{
+  width:32px;height:32px;border-radius:8px;
+  background:var(--card);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  font-size:15px;cursor:pointer;transition:background .15s;
+}
+.tb-btn:active{background:var(--card2)}
+.notif-wrap{position:relative}
+.notif-red{position:absolute;top:4px;right:4px;width:7px;height:7px;background:var(--red);border-radius:50%;border:1.5px solid var(--bg2)}
+
+.scroll-area{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
+.scroll-area::-webkit-scrollbar{display:none}
+
+.bottom-nav{
+  flex-shrink:0;
+  background:var(--bg2);
+  border-top:1px solid var(--border);
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  padding-bottom:var(--safe-b);
+}
+.nav-tab{
+  display:flex;flex-direction:column;align-items:center;
+  gap:3px;padding:8px 0;cursor:pointer;
+  font-size:9.5px;color:var(--muted);
+  transition:color .15s;position:relative;
+}
+.nav-tab.active{color:var(--gold)}
+.nav-tab.active::after{
+  content:'';position:absolute;top:0;left:25%;right:25%;
+  height:2px;background:var(--gold);border-radius:0 0 2px 2px;
+}
+.nav-icon{font-size:20px;line-height:1}
+.nav-badge{
+  position:absolute;top:6px;right:calc(50% - 16px);
+  background:var(--red);color:#fff;
+  font-size:8px;font-weight:700;
+  padding:1px 4px;border-radius:6px;min-width:14px;text-align:center;
+}
+
+/* ── PAGES ──────────────────────────────────────────────────────────── */
+.page{display:none;padding:16px}
+.page.active{display:block}
+
+/* ── METRICS ────────────────────────────────────────────────────────── */
+.metrics-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.metric-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:12px;padding:14px;position:relative;overflow:hidden;
+}
+.metric-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.mc-gold::before{background:var(--gold)}
+.mc-green::before{background:var(--green)}
+.mc-blue::before{background:var(--blue)}
+.mc-red::before{background:var(--red)}
+.mc-purple::before{background:var(--purple)}
+.mc-teal::before{background:var(--teal)}
+.mc-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px}
+.mc-val{font-family:'Playfair Display',serif;font-size:28px;font-weight:700;line-height:1}
+.mc-sub{font-size:10.5px;color:var(--muted);margin-top:4px}
+.mc-icon{position:absolute;right:12px;top:12px;font-size:18px;opacity:.15}
+
+/* ── SECTION HEADER ─────────────────────────────────────────────────── */
+.sec-head{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.sec-title{font-family:'Playfair Display',serif;font-size:16px;font-weight:700}
+.sec-ml{margin-left:auto}
+.sec-count{font-size:11px;color:var(--muted);background:var(--bg3);padding:2px 8px;border-radius:8px}
+
+/* ── TAGS / BADGES ──────────────────────────────────────────────────── */
+.tag{display:inline-flex;align-items:center;font-size:10px;padding:2px 7px;border-radius:5px;font-weight:600;white-space:nowrap}
+.t-red{background:rgba(212,90,90,.18);color:var(--red)}
+.t-orange{background:rgba(212,146,74,.18);color:var(--orange)}
+.t-green{background:rgba(90,172,128,.18);color:var(--green)}
+.t-blue{background:rgba(94,143,224,.18);color:var(--blue)}
+.t-purple{background:rgba(142,108,212,.18);color:var(--purple)}
+.t-teal{background:rgba(74,184,184,.18);color:var(--teal)}
+.t-muted{background:rgba(110,115,144,.18);color:var(--muted)}
+.t-gold{background:rgba(201,168,108,.18);color:var(--gold2)}
+.t-pink{background:rgba(212,120,142,.18);color:var(--pink)}
+
+/* ── BUTTONS ────────────────────────────────────────────────────────── */
+.btn{display:inline-flex;align-items:center;gap:5px;padding:9px 16px;border-radius:9px;font-size:13px;font-weight:500;cursor:pointer;border:none;font-family:'Geologica',sans-serif;transition:all .15s}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:var(--gold);color:#1a1200}
+.btn-primary:active{background:var(--gold2)}
+.btn-ghost{background:var(--card);color:var(--text);border:1px solid var(--border)}
+.btn-ghost:active{background:var(--card2)}
+.btn-sm{padding:6px 12px;font-size:12px}
+.btn-full{width:100%;justify-content:center}
+
+/* ── TASKS ──────────────────────────────────────────────────────────── */
+.task-list{display:flex;flex-direction:column;gap:8px}
+.task-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:11px;padding:12px 14px;
+  display:flex;gap:10px;align-items:flex-start;
+  cursor:pointer;transition:border-color .15s;
+  position:relative;overflow:hidden;
+}
+.task-card:active{background:var(--card2)}
+.task-card.pinned::after{content:'📌';position:absolute;right:10px;top:10px;font-size:11px}
+.tc-prio{width:3px;border-radius:2px;flex-shrink:0;align-self:stretch;margin:-12px 0 -12px -14px;margin-right:0}
+.tc-body{flex:1;min-width:0}
+.tc-name{font-size:13px;font-weight:500;line-height:1.4;margin-bottom:6px}
+.tc-meta{display:flex;gap:5px;flex-wrap:wrap;align-items:center}
+.tc-who{font-size:11px;color:var(--muted);margin-left:auto;white-space:nowrap}
+.tc-dl{font-size:11px;white-space:nowrap}
+.tc-dl.ov{color:var(--red);font-weight:600}
+.tc-dl.soon{color:var(--orange)}
+.tc-dl.ok{color:var(--muted)}
+.task-card.overdue{border-color:rgba(212,90,90,.3)}
+
+/* ── FILTER CHIPS ───────────────────────────────────────────────────── */
+.chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:12px}
+.chips::-webkit-scrollbar{display:none}
+.chip{
+  flex-shrink:0;padding:6px 12px;border-radius:20px;
+  font-size:12px;cursor:pointer;border:1px solid var(--border);
+  background:var(--card);color:var(--muted);transition:all .15s;
+  white-space:nowrap;
+}
+.chip.active{background:var(--gold);border-color:var(--gold);color:#1a1200;font-weight:600}
+.chip:active{opacity:.8}
+
+/* ── STATUS PILLS ───────────────────────────────────────────────────── */
+.status-pills{display:flex;gap:5px;overflow-x:auto;padding-bottom:2px;margin-bottom:12px}
+.status-pills::-webkit-scrollbar{display:none}
+.status-pill{
+  flex-shrink:0;padding:5px 11px;border-radius:20px;
+  font-size:11.5px;cursor:pointer;border:1px solid transparent;
+  background:var(--bg3);color:var(--muted);transition:all .15s;
+  white-space:nowrap;font-weight:500;
+}
+.status-pill.active{font-weight:600}
+.status-pill:active{opacity:.8}
+
+/* ── KANBAN ─────────────────────────────────────────────────────────── */
+.kanban-scroll{overflow-x:auto;display:flex;gap:10px;padding-bottom:8px}
+.kanban-scroll::-webkit-scrollbar{display:none}
+.k-col{
+  min-width:200px;width:200px;flex-shrink:0;
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:12px;padding:10px;
+}
+.k-col-head{display:flex;align-items:center;gap:6px;margin-bottom:8px}
+.k-col-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.6px}
+.k-col-cnt{margin-left:auto;font-size:10px;color:var(--muted);background:var(--bg3);padding:1px 6px;border-radius:8px}
+.k-cards{display:flex;flex-direction:column;gap:6px}
+.k-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:8px;padding:10px;cursor:pointer;
+  transition:border-color .15s;
+}
+.k-card:active{border-color:rgba(201,168,108,.4)}
+.kc-name{font-size:12px;font-weight:500;line-height:1.4;margin-bottom:7px}
+.kc-foot{display:flex;align-items:center;gap:5px}
+.kc-who{font-size:10px;color:var(--muted);margin-left:auto}
+.kc-dl{font-size:10px}
+
+/* ── IDEA CARDS ─────────────────────────────────────────────────────── */
+.idea-list{display:flex;flex-direction:column;gap:10px}
+.idea-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:12px;padding:14px;
+  border-left:3px solid var(--purple);
+}
+.idea-title{font-size:13.5px;font-weight:600;margin-bottom:4px}
+.idea-desc{font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:10px}
+.idea-foot{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.stars{color:var(--gold);font-size:12px;letter-spacing:1px}
+.idea-actions{display:flex;gap:7px;margin-top:10px}
+
+/* ── TEAM ───────────────────────────────────────────────────────────── */
+.team-list{display:flex;flex-direction:column;gap:10px}
+.team-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:12px;padding:14px;cursor:pointer;
+}
+.team-card:active{background:var(--card2)}
+.tc-head-row{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.t-avatar{
+  width:40px;height:40px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;font-weight:700;color:#fff;flex-shrink:0;
+}
+.t-name{font-size:14px;font-weight:600}
+.t-role{font-size:11px;color:var(--muted);margin-top:1px}
+.t-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px}
+.t-stat{background:var(--bg3);border-radius:8px;padding:8px;text-align:center}
+.t-sv{font-family:'Playfair Display',serif;font-size:20px;font-weight:700}
+.t-sl{font-size:9.5px;color:var(--muted)}
+.t-bar-wrap{height:4px;background:var(--bg3);border-radius:2px;overflow:hidden;margin-bottom:8px}
+.t-bar-fill{height:100%;border-radius:2px;transition:width .4s}
+.t-tasks-mini{display:flex;flex-direction:column;gap:4px}
+.t-task-mini{font-size:11.5px;color:var(--muted);display:flex;align-items:center;gap:6px;padding:3px 0}
+.t-task-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
+
+/* ── PRODUCT ────────────────────────────────────────────────────────── */
+.prog-list{display:flex;flex-direction:column;gap:8px}
+.prog-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:11px;overflow:hidden;
+}
+.prog-bar-top{height:3px}
+.prog-body{padding:12px 14px}
+.prog-name{font-size:13.5px;font-weight:600;margin-bottom:2px}
+.prog-desc{font-size:11.5px;color:var(--muted);margin-bottom:8px}
+.prog-stats{display:flex;gap:10px;flex-wrap:wrap}
+.prog-stat{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:3px}
+.load-bar{height:5px;background:var(--bg3);border-radius:3px;overflow:hidden;margin-top:8px}
+.load-fill{height:100%;border-radius:3px;transition:width .5s}
+
+/* ── TASK PANEL (slide-over) ────────────────────────────────────────── */
+.panel-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.6);
+  backdrop-filter:blur(4px);z-index:200;
+  opacity:0;pointer-events:none;transition:opacity .25s;
+}
+.panel-overlay.open{opacity:1;pointer-events:all}
+.task-panel{
+  position:fixed;left:0;right:0;bottom:0;
+  background:var(--bg2);border-top:1px solid var(--border2);
+  border-radius:20px 20px 0 0;
+  z-index:201;
+  transform:translateY(100%);
+  transition:transform .28s cubic-bezier(.4,0,.2,1);
+  max-height:92dvh;
+  display:flex;flex-direction:column;
+}
+.task-panel.open{transform:none}
+.panel-handle{width:36px;height:4px;background:var(--border2);border-radius:2px;margin:12px auto 0}
+.panel-head{padding:14px 18px 10px;border-bottom:1px solid var(--border);flex-shrink:0}
+.panel-status-row{display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;margin-bottom:8px}
+.panel-status-row::-webkit-scrollbar{display:none}
+.ps-btn{
+  flex-shrink:0;padding:5px 12px;border-radius:20px;
+  font-size:12px;font-weight:600;cursor:pointer;border:1px solid;
+  transition:all .15s;background:transparent;font-family:'Geologica',sans-serif;
+}
+.panel-title{font-family:'Playfair Display',serif;font-size:17px;font-weight:700;line-height:1.3}
+.panel-body{flex:1;overflow-y:auto;padding:16px 18px;-webkit-overflow-scrolling:touch}
+.panel-body::-webkit-scrollbar{display:none}
+.pf-group{margin-bottom:16px}
+.pf-label{font-size:10px;text-transform:uppercase;letter-spacing:.9px;color:var(--muted2);margin-bottom:6px;font-weight:600}
+.pf-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
+.pf-item{background:var(--bg3);border-radius:9px;padding:10px 12px}
+.pf-item-label{font-size:9.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;margin-bottom:3px}
+.pf-sel{background:none;border:none;color:var(--text);font-size:12.5px;font-weight:500;font-family:'Geologica',sans-serif;width:100%;outline:none;cursor:pointer}
+.pf-sel option{background:var(--bg2)}
+.pf-date{background:none;border:none;color:var(--text);font-size:12.5px;font-weight:500;font-family:'Geologica',sans-serif;width:100%;outline:none;cursor:pointer}
+
+/* Score sliders */
+.score-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.score-lbl{font-size:11.5px;color:var(--muted);flex:1}
+.score-sl{accent-color:var(--gold);width:90px;cursor:pointer}
+.score-num{font-size:12px;font-weight:600;color:var(--gold2);width:14px;text-align:right}
+.score-result{
+  background:var(--bg3);border-radius:9px;padding:10px 13px;
+  display:flex;align-items:center;gap:8px;margin-top:8px;
+}
+.score-badge{font-size:12.5px;font-weight:700;padding:3px 9px;border-radius:7px}
+
+/* Checklist */
+.cl-progress{height:3px;background:var(--bg3);border-radius:2px;overflow:hidden;margin-bottom:8px}
+.cl-fill{height:100%;background:var(--green);border-radius:2px;transition:width .3s}
+.cl-list{display:flex;flex-direction:column;gap:4px}
+.cl-item{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:7px}
+.cl-item:active{background:var(--bg3)}
+.cl-cb{accent-color:var(--gold);width:15px;height:15px;cursor:pointer;flex-shrink:0}
+.cl-text{font-size:13px;flex:1;cursor:pointer}
+.cl-text.done{text-decoration:line-through;color:var(--muted)}
+.cl-del{background:none;border:none;color:var(--muted);font-size:16px;cursor:pointer;padding:0 4px;opacity:0}
+.cl-item:hover .cl-del,.cl-item:focus-within .cl-del{opacity:1}
+
+/* Comments */
+.comment-list{display:flex;flex-direction:column;gap:8px;margin-bottom:10px}
+.comment{display:flex;gap:8px}
+.c-av{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0;margin-top:1px}
+.c-bubble{background:var(--bg3);border-radius:8px;padding:8px 10px;flex:1}
+.c-author{font-size:10px;font-weight:600;margin-bottom:2px}
+.c-text{font-size:12px;color:var(--muted);line-height:1.5}
+.c-time{font-size:9.5px;color:var(--muted2);margin-top:2px}
+.comment-input-row{display:flex;gap:7px;align-items:flex-end}
+.comment-input{
+  flex:1;background:var(--bg3);border:1px solid var(--border);
+  border-radius:9px;color:var(--text);font-size:12.5px;
+  padding:8px 11px;font-family:'Geologica',sans-serif;
+  resize:none;outline:none;min-height:36px;max-height:80px;
+  transition:border-color .15s;
+}
+.comment-input:focus{border-color:var(--gold)}
+
+/* History */
+.hist-list{display:flex;flex-direction:column;gap:7px}
+.hist-item{display:flex;gap:8px;font-size:12px}
+.hist-dot{width:6px;height:6px;border-radius:50%;background:var(--border2);margin-top:4px;flex-shrink:0}
+.hist-text{color:var(--muted)}
+.hist-time{font-size:10px;color:var(--muted2);margin-top:1px}
+
+/* ── MODAL (new task / idea) ────────────────────────────────────────── */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.7);
+  backdrop-filter:blur(6px);z-index:300;
+  display:none;align-items:flex-end;justify-content:center;
+  padding:0;
+}
+.modal-overlay.open{display:flex}
+.modal{
+  background:var(--bg2);border-top:1px solid var(--border2);
+  border-radius:20px 20px 0 0;width:100%;
+  max-height:92dvh;display:flex;flex-direction:column;
+  animation:slideUp .25s ease;
+}
+@keyframes slideUp{from{transform:translateY(30px);opacity:0}to{transform:none;opacity:1}}
+.modal-handle{width:36px;height:4px;background:var(--border2);border-radius:2px;margin:12px auto 0}
+.modal-head{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center}
+.modal-title{font-family:'Playfair Display',serif;font-size:17px;font-weight:700;flex:1}
+.modal-body{flex:1;overflow-y:auto;padding:16px 18px;-webkit-overflow-scrolling:touch}
+.modal-body::-webkit-scrollbar{display:none}
+.modal-foot{padding:12px 18px;padding-bottom:calc(12px + var(--safe-b));border-top:1px solid var(--border);display:flex;gap:8px}
+.fg{margin-bottom:13px}
+.flbl{font-size:10px;text-transform:uppercase;letter-spacing:.9px;color:var(--muted);margin-bottom:5px;display:block;font-weight:600}
+.finput,.fsel,.ftxt{
+  width:100%;background:var(--bg3);border:1px solid var(--border);
+  border-radius:9px;color:var(--text);font-size:13px;
+  padding:10px 12px;font-family:'Geologica',sans-serif;
+  transition:border-color .15s;outline:none;
+}
+.finput:focus,.fsel:focus,.ftxt:focus{border-color:var(--gold)}
+.ftxt{resize:vertical;min-height:70px}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+/* ── ALERT CARDS ────────────────────────────────────────────────────── */
+.alert-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:11px;padding:12px 14px;margin-bottom:10px;
+}
+.alert-card-head{display:flex;align-items:center;gap:7px;margin-bottom:10px}
+.alert-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.alert-card-title{font-size:13px;font-weight:600}
+.alert-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);font-size:12.5px}
+.alert-row:last-child{border-bottom:none}
+
+/* ── BAR CHART ──────────────────────────────────────────────────────── */
+.chart-bars{display:flex;align-items:flex-end;gap:4px;height:70px}
+.cb-grp{display:flex;flex-direction:column;align-items:center;gap:3px;flex:1}
+.cb-pair{display:flex;gap:2px;align-items:flex-end;height:60px}
+.cb{width:8px;border-radius:2px 2px 0 0}
+.cb-lbl{font-size:8px;color:var(--muted)}
+
+/* ── SECTOR BARS ────────────────────────────────────────────────────── */
+.sector-bars{display:flex;flex-direction:column;gap:9px}
+.sb-row{display:flex;align-items:center;gap:8px}
+.sb-name{font-size:11.5px;width:100px;flex-shrink:0}
+.sb-track{flex:1;height:5px;background:var(--bg3);border-radius:3px;overflow:hidden}
+.sb-fill{height:100%;border-radius:3px}
+.sb-pct{font-size:11px;color:var(--muted);width:30px;text-align:right}
+
+/* ── DONUT ──────────────────────────────────────────────────────────── */
+.donut-wrap{position:relative;width:90px;height:90px;flex-shrink:0}
+.donut-wrap svg{width:100%;height:100%;transform:rotate(-90deg)}
+.donut-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center}
+.donut-val{font-family:'Playfair Display',serif;font-size:20px;font-weight:700}
+.donut-lbl{font-size:9.5px;color:var(--muted)}
+.legend{display:flex;flex-direction:column;gap:5px;flex:1}
+.leg-row{display:flex;align-items:center;gap:6px;font-size:11.5px}
+.leg-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.leg-val{margin-left:auto;font-weight:600}
+
+/* ── FOCUS STRIP ────────────────────────────────────────────────────── */
+.focus-strip{
+  background:linear-gradient(135deg,var(--card2),#2a2d48);
+  border:1px solid var(--border2);border-radius:12px;
+  padding:14px;margin-bottom:14px;
+}
+.focus-head{font-size:11px;color:var(--gold2);text-transform:uppercase;letter-spacing:.9px;margin-bottom:10px;display:flex;align-items:center;gap:6px;font-weight:600}
+.focus-items{display:flex;flex-direction:column;gap:6px}
+.focus-item{display:flex;align-items:center;gap:8px;font-size:12.5px}
+.focus-check{
+  width:18px;height:18px;border-radius:5px;
+  border:1.5px solid var(--border2);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;transition:all .15s;
+}
+.focus-check.done{background:var(--green);border-color:var(--green);font-size:10px;color:#fff}
+
+/* ── TOAST ──────────────────────────────────────────────────────────── */
+.toast{
+  position:fixed;bottom:calc(var(--nav-h) + var(--safe-b) + 12px);
+  left:50%;transform:translateX(-50%);
+  background:var(--card2);border:1px solid var(--border2);
+  border-radius:10px;padding:10px 18px;
+  font-size:13px;color:var(--text);
+  z-index:500;white-space:nowrap;
+  box-shadow:0 8px 32px rgba(0,0,0,.5);
+  animation:toastIn .2s ease;pointer-events:none;
+}
+@keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(8px)}to{opacity:1;transform:translateX(-50%)}}
+
+/* ── EMPTY STATE ────────────────────────────────────────────────────── */
+.empty{text-align:center;padding:40px 20px;color:var(--muted)}
+.empty-icon{font-size:36px;margin-bottom:10px}
+.empty-text{font-size:13px;line-height:1.5}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div class="tb-logo">Lady Stretch</div>
+    <div class="tb-page" id="page-label">Дашборд</div>
+    <div class="tb-right">
+      <div class="tb-btn notif-wrap" onclick="goTab('alerts')">
+        🔔<div class="notif-red"></div>
+      </div>
+      <div class="tb-btn" id="add-btn" onclick="openNewTask()">＋</div>
+    </div>
+  </div>
+
+  <!-- SCROLL AREA -->
+  <div class="scroll-area" id="scroll-area">
+
+    <!-- ══ DASHBOARD ══════════════════════════════════════════════════ -->
+    <div class="page active" id="tab-dashboard">
+      <div style="padding:16px">
+
+        <div class="focus-strip">
+          <div class="focus-head">🎯 Фокус дня</div>
+          <div class="focus-items" id="focus-items"></div>
+        </div>
+
+        <div class="metrics-row">
+          <div class="metric-card mc-gold">
+            <div class="mc-icon">📋</div>
+            <div class="mc-label">Всего задач</div>
+            <div class="mc-val" id="m-total">—</div>
+            <div class="mc-sub" id="m-total-sub"></div>
+          </div>
+          <div class="metric-card mc-green">
+            <div class="mc-icon">✅</div>
+            <div class="mc-label">Выполнено</div>
+            <div class="mc-val" id="m-done">—</div>
+            <div class="mc-sub" id="m-done-sub"></div>
+          </div>
+          <div class="metric-card mc-blue">
+            <div class="mc-icon">⚡</div>
+            <div class="mc-label">В работе</div>
+            <div class="mc-val" id="m-work">—</div>
+            <div class="mc-sub" id="m-work-sub"></div>
+          </div>
+          <div class="metric-card mc-red">
+            <div class="mc-icon">⚠️</div>
+            <div class="mc-label">Просрочено</div>
+            <div class="mc-val" id="m-over">—</div>
+            <div class="mc-sub">Требуют внимания</div>
+          </div>
+        </div>
+
+        <!-- Chart + donut row -->
+        <div class="alert-card" style="margin-bottom:12px">
+          <div class="alert-card-head"><div class="alert-dot" style="background:var(--blue)"></div><div class="alert-card-title">Выполнение по неделям</div></div>
+          <div class="chart-bars" id="week-bars"></div>
+          <div style="display:flex;gap:12px;margin-top:8px">
+            <div style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--muted)"><div style="width:8px;height:8px;border-radius:2px;background:var(--blue)"></div>Создано</div>
+            <div style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--muted)"><div style="width:8px;height:8px;border-radius:2px;background:var(--green)"></div>Выполнено</div>
+          </div>
+        </div>
+
+        <div class="alert-card" style="margin-bottom:12px">
+          <div class="alert-card-head"><div class="alert-dot" style="background:var(--gold)"></div><div class="alert-card-title">По секторам</div></div>
+          <div class="sector-bars" id="sector-bars-dash"></div>
+        </div>
+
+        <div class="alert-card" style="margin-bottom:12px">
+          <div class="alert-card-head"><div class="alert-dot" style="background:var(--red);box-shadow:0 0 6px var(--red)"></div><div class="alert-card-title">🚨 Требуют внимания</div></div>
+          <div id="alerts-mini"></div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ══ TASKS ══════════════════════════════════════════════════════ -->
+    <div class="page" id="tab-tasks">
+      <div style="padding:16px">
+        <div class="sec-head">
+          <div class="sec-title">Задачи</div>
+          <div style="display:flex;gap:6px;margin-left:auto">
+            <button class="btn btn-ghost btn-sm" onclick="goKanban()">Канбан</button>
+          </div>
+        </div>
+
+        <!-- Sector chips -->
+        <div class="chips" id="sector-chips"></div>
+
+        <!-- Status pills -->
+        <div class="status-pills" id="status-pills"></div>
+
+        <div class="task-list" id="task-list"></div>
+      </div>
+    </div>
+
+    <!-- ══ KANBAN ══════════════════════════════════════════════════════ -->
+    <div class="page" id="tab-kanban">
+      <div style="padding:16px 16px 16px">
+        <div class="sec-head">
+          <div class="sec-title">Канбан</div>
+          <button class="btn btn-ghost btn-sm sec-ml" onclick="goTab('tasks')">Список</button>
+        </div>
+        <div class="kanban-scroll" id="kanban-board"></div>
+      </div>
+    </div>
+
+    <!-- ══ IDEAS ══════════════════════════════════════════════════════ -->
+    <div class="page" id="tab-ideas">
+      <div style="padding:16px">
+        <div class="sec-head">
+          <div class="sec-title">💡 Банк идей</div>
+          <button class="btn btn-primary btn-sm sec-ml" onclick="openNewIdea()">+ Идея</button>
+        </div>
+        <div class="idea-list" id="idea-list"></div>
+      </div>
+    </div>
+
+    <!-- ══ MORE (Team + Product + Alerts) ════════════════════════════ -->
+    <div class="page" id="tab-more">
+      <div style="padding:16px">
+
+        <!-- Alerts section -->
+        <div class="sec-head"><div class="sec-title">🔔 Уведомления</div></div>
+        <div id="alerts-full" style="margin-bottom:20px"></div>
+
+        <!-- Team section -->
+        <div class="sec-head"><div class="sec-title">👥 Команда</div></div>
+        <div class="team-list" id="team-list" style="margin-bottom:20px"></div>
+
+        <!-- Product section -->
+        <div class="sec-head"><div class="sec-title">🏋️ Продукт</div></div>
+        <div class="prog-list" id="prog-list"></div>
+
+      </div>
+    </div>
+
+    <!-- ══ ALERTS TAB ═════════════════════════════════════════════════ -->
+    <div class="page" id="tab-alerts" style="display:none"></div>
+
+  </div><!-- /scroll-area -->
+
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav">
+    <div class="nav-tab active" id="nav-dashboard" onclick="goTab('dashboard')">
+      <div class="nav-icon">📊</div>
+      <div>Главная</div>
+    </div>
+    <div class="nav-tab" id="nav-tasks" onclick="goTab('tasks')">
+      <div class="nav-icon">✅</div>
+      <div>Задачи</div>
+      <div class="nav-badge" id="overdue-badge" style="display:none"></div>
+    </div>
+    <div class="nav-tab" id="nav-ideas" onclick="goTab('ideas')">
+      <div class="nav-icon">💡</div>
+      <div>Идеи</div>
+    </div>
+    <div class="nav-tab" id="nav-more" onclick="goTab('more')">
+      <div class="nav-icon">👥</div>
+      <div>Команда</div>
+    </div>
+    <div class="nav-tab" id="nav-alerts" onclick="goTab('alerts')">
+      <div class="nav-icon">🔔</div>
+      <div>Сигналы</div>
+      <div class="nav-badge">5</div>
+    </div>
+  </nav>
+
+</div><!-- /app -->
+
+<!-- ── TASK DETAIL PANEL ───────────────────────────────────────────── -->
+<div class="panel-overlay" id="panel-overlay" onclick="closePanel()"></div>
+<div class="task-panel" id="task-panel">
+  <div class="panel-handle"></div>
+  <div class="panel-head">
+    <div class="panel-status-row" id="panel-statuses"></div>
+    <div class="panel-title" id="panel-title" contenteditable="true" spellcheck="false"></div>
+  </div>
+  <div class="panel-body">
+    <div class="pf-grid">
+      <div class="pf-item">
+        <div class="pf-item-label">Сектор</div>
+        <select class="pf-sel" id="pf-sector" onchange="saveField('sector',this.value)">
+          <option>Продажи</option><option>Маркетинг</option><option>Доп. услуги</option>
+          <option>Мерч</option><option>Ретриты</option><option>Операционка</option>
+          <option>Продукт / Тренировки</option>
+        </select>
+      </div>
+      <div class="pf-item">
+        <div class="pf-item-label">Ответственный</div>
+        <select class="pf-sel" id="pf-who" onchange="saveField('who',this.value)">
+          <option>Анна Н.</option><option>Мария С.</option><option>Катя В.</option>
+        </select>
+      </div>
+      <div class="pf-item">
+        <div class="pf-item-label">Дедлайн</div>
+        <input type="date" class="pf-date" id="pf-deadline" onchange="saveField('deadline',this.value)">
+      </div>
+      <div class="pf-item">
+        <div class="pf-item-label">Приоритет</div>
+        <select class="pf-sel" id="pf-prio" onchange="saveField('prio',this.value)">
+          <option value="high">🔴 Высокий</option>
+          <option value="mid">🟡 Средний</option>
+          <option value="low">🟢 Низкий</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Scores -->
+    <div class="pf-group">
+      <div class="pf-label">Оценка задачи</div>
+      <div class="score-row"><span class="score-lbl">🎯 Влияние</span><input type="range" class="score-sl" id="ps-impact" min="1" max="5" oninput="onScoreChange()"><span class="score-num" id="psv-impact">3</span></div>
+      <div class="score-row"><span class="score-lbl">💰 Финансы</span><input type="range" class="score-sl" id="ps-finance" min="1" max="5" oninput="onScoreChange()"><span class="score-num" id="psv-finance">3</span></div>
+      <div class="score-row"><span class="score-lbl">⚡ Срочность</span><input type="range" class="score-sl" id="ps-urgency" min="1" max="5" oninput="onScoreChange()"><span class="score-num" id="psv-urgency">3</span></div>
+      <div class="score-row"><span class="score-lbl">🔧 Сложность</span><input type="range" class="score-sl" id="ps-complexity" min="1" max="5" oninput="onScoreChange()"><span class="score-num" id="psv-complexity">3</span></div>
+      <div class="score-result"><span class="score-badge" id="ps-badge">📋 Обычная</span><span style="font-size:11px;color:var(--muted)" id="ps-score-lbl"></span></div>
+    </div>
+
+    <!-- Checklist -->
+    <div class="pf-group">
+      <div class="pf-label">Чек-лист <span id="cl-pct" style="color:var(--green);font-size:10px"></span></div>
+      <div class="cl-progress"><div class="cl-fill" id="cl-fill" style="width:0%"></div></div>
+      <div class="cl-list" id="cl-list"></div>
+      <div style="display:flex;gap:7px;margin-top:8px">
+        <input class="finput" id="cl-new-input" placeholder="Новый пункт..." style="font-size:12.5px;padding:8px 11px" onkeydown="if(event.key==='Enter')addClItem()">
+        <button class="btn btn-ghost btn-sm" onclick="addClItem()">+</button>
+      </div>
+    </div>
+
+    <!-- Description -->
+    <div class="pf-group">
+      <div class="pf-label">Описание</div>
+      <textarea class="ftxt" id="pf-desc" placeholder="Детали задачи..." style="min-height:60px;font-size:12.5px" onblur="saveField('desc',this.value)"></textarea>
+    </div>
+
+    <!-- Tags -->
+    <div class="pf-group">
+      <div class="pf-label">Теги</div>
+      <div id="pf-tags" style="display:flex;flex-wrap:wrap;gap:5px;align-items:center;margin-bottom:6px"></div>
+      <input class="finput" id="pf-tag-input" placeholder="+ добавить тег (Enter)" style="font-size:12.5px;padding:7px 11px" onkeydown="if(event.key==='Enter'&&this.value.trim()){addTag(this.value.trim());this.value=''}">
+    </div>
+
+    <!-- Comments -->
+    <div class="pf-group">
+      <div class="pf-label">Комментарии</div>
+      <div class="comment-list" id="comment-list"></div>
+      <div class="comment-input-row">
+        <textarea class="comment-input" id="comment-input" placeholder="Написать..." rows="1" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();addComment()}"></textarea>
+        <button class="btn btn-primary btn-sm" onclick="addComment()">↑</button>
+      </div>
+    </div>
+
+    <!-- History -->
+    <div class="pf-group">
+      <div class="pf-label">История</div>
+      <div class="hist-list" id="hist-list"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── NEW TASK MODAL ──────────────────────────────────────────────── -->
+<div class="modal-overlay" id="modal-task" onclick="if(event.target===this)closeModal('task')">
+<div class="modal">
+  <div class="modal-handle"></div>
+  <div class="modal-head">
+    <div class="modal-title" id="modal-task-title">Новая задача</div>
+    <button class="btn btn-ghost btn-sm" onclick="closeModal('task')" style="margin-left:auto">✕</button>
+  </div>
+  <div class="modal-body">
+    <div class="fg"><label class="flbl">Название</label><input class="finput" id="nt-name" placeholder="Что нужно сделать?"></div>
+    <div class="frow">
+      <div class="fg"><label class="flbl">Сектор</label>
+        <select class="fsel" id="nt-sector">
+          <option>Продажи</option><option>Маркетинг</option><option>Доп. услуги</option>
+          <option>Мерч</option><option>Ретриты</option><option>Операционка</option>
+          <option>Продукт / Тренировки</option>
+        </select>
+      </div>
+      <div class="fg"><label class="flbl">Ответственный</label>
+        <select class="fsel" id="nt-who">
+          <option>Анна Н.</option><option>Мария С.</option><option>Катя В.</option>
+        </select>
+      </div>
+    </div>
+    <div class="frow">
+      <div class="fg"><label class="flbl">Дедлайн</label><input class="finput" type="date" id="nt-deadline"></div>
+      <div class="fg"><label class="flbl">Приоритет</label>
+        <select class="fsel" id="nt-prio">
+          <option value="high">🔴 Высокий</option>
+          <option value="mid" selected>🟡 Средний</option>
+          <option value="low">🟢 Низкий</option>
+        </select>
+      </div>
+    </div>
+    <div class="fg"><label class="flbl">Описание</label><textarea class="ftxt" id="nt-desc" placeholder="Детали..."></textarea></div>
+
+    <div class="fg">
+      <div class="pf-label" style="margin-bottom:8px">Оценка → автоприоритет</div>
+      <div class="score-row"><span class="score-lbl">🎯 Влияние</span><input type="range" class="score-sl" id="ns-impact" min="1" max="5" value="3" oninput="calcScore()"><span class="score-num" id="nsv-i">3</span></div>
+      <div class="score-row"><span class="score-lbl">💰 Финансы</span><input type="range" class="score-sl" id="ns-finance" min="1" max="5" value="3" oninput="calcScore()"><span class="score-num" id="nsv-f">3</span></div>
+      <div class="score-row"><span class="score-lbl">⚡ Срочность</span><input type="range" class="score-sl" id="ns-urgency" min="1" max="5" value="3" oninput="calcScore()"><span class="score-num" id="nsv-u">3</span></div>
+      <div class="score-row"><span class="score-lbl">🔧 Сложность</span><input type="range" class="score-sl" id="ns-complexity" min="1" max="5" value="3" oninput="calcScore()"><span class="score-num" id="nsv-c">3</span></div>
+      <div class="score-result" id="ns-result">
+        <span class="score-badge" id="ns-badge">📋 Обычная задача</span>
+        <span style="font-size:11px;color:var(--muted)" id="ns-lbl">Оценка: 5.0</span>
+        <span style="font-size:10.5px;color:var(--muted);margin-left:auto" id="ns-prio-hint"></span>
+      </div>
+    </div>
+  </div>
+  <div class="modal-foot">
+    <button class="btn btn-ghost btn-full" onclick="closeModal('task')" style="flex:1">Отмена</button>
+    <button class="btn btn-primary btn-full" onclick="createTask()" style="flex:2">Создать задачу</button>
+  </div>
+</div>
+</div>
+
+<!-- ── NEW IDEA MODAL ─────────────────────────────────────────────── -->
+<div class="modal-overlay" id="modal-idea" onclick="if(event.target===this)closeModal('idea')">
+<div class="modal">
+  <div class="modal-handle"></div>
+  <div class="modal-head">
+    <div class="modal-title">💡 Новая идея</div>
+    <button class="btn btn-ghost btn-sm" onclick="closeModal('idea')" style="margin-left:auto">✕</button>
+  </div>
+  <div class="modal-body">
+    <div class="fg"><label class="flbl">Название</label><input class="finput" id="ni-name" placeholder="Суть идеи одной фразой"></div>
+    <div class="fg"><label class="flbl">Описание</label><textarea class="ftxt" id="ni-desc" placeholder="Как работает? Что нужно?"></textarea></div>
+    <div class="frow">
+      <div class="fg"><label class="flbl">Сектор</label>
+        <select class="fsel" id="ni-sector">
+          <option>Продажи</option><option>Маркетинг</option><option>Доп. услуги</option>
+          <option>Мерч</option><option>Ретриты</option><option>Операционка</option>
+          <option>Продукт / Тренировки</option>
+        </select>
+      </div>
+      <div class="fg"><label class="flbl">Важность</label>
+        <select class="fsel" id="ni-score">
+          <option value="1">⭐ 1</option><option value="2">⭐⭐ 2</option>
+          <option value="3" selected>⭐⭐⭐ 3</option>
+          <option value="4">⭐⭐⭐⭐ 4</option><option value="5">⭐⭐⭐⭐⭐ 5</option>
+        </select>
+      </div>
+    </div>
+    <div class="fg"><label class="flbl">Финансовый потенциал</label>
+      <select class="fsel" id="ni-fin">
+        <option>Высокий — прямой доход</option>
+        <option>Средний — косвенный эффект</option>
+        <option>Низкий — репутация / процессы</option>
+      </select>
+    </div>
+  </div>
+  <div class="modal-foot">
+    <button class="btn btn-ghost" onclick="closeModal('idea')" style="flex:1">Отмена</button>
+    <button class="btn btn-primary" onclick="createIdea()" style="flex:2">Сохранить идею</button>
+  </div>
+</div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════
+// TELEGRAM INIT
+// ═══════════════════════════════════════════════════════════════════
+const tg = window.Telegram && window.Telegram.WebApp;
+if (tg) {
+  tg.ready();
+  tg.expand();
+  tg.setHeaderColor('#0d0e12');
+  tg.setBackgroundColor('#0d0e12');
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════════════════════════════
+const SC = {
+  'Маркетинг':   'var(--pink)',
+  'Продажи':     'var(--blue)',
+  'Доп. услуги': 'var(--green)',
+  'Мерч':        'var(--orange)',
+  'Ретриты':     'var(--gold)',
+  'Операционка': 'var(--purple)',
+  'Продукт / Тренировки': 'var(--teal)',
+};
+const STATUS_COL = {idea:'var(--purple)',work:'var(--blue)',review:'var(--orange)',done:'var(--green)',hold:'var(--muted)'};
+const STATUS_LBL = {idea:'Идея',work:'В работе',review:'На согласовании',done:'Выполнено',hold:'Отложено'};
+const PRIO_COL   = {high:'var(--red)',mid:'var(--orange)',low:'var(--green)'};
+
+let tasks = [
+  {id:1,  name:'Запустить email-рассылку для клиентов',      sector:'Маркетинг',              who:'Катя В.',  deadline:'2025-04-22', prio:'high', status:'work',   tags:['срочно'],    overdue:true},
+  {id:2,  name:'Обновить прайс на массаж',                   sector:'Доп. услуги',            who:'Мария С.', deadline:'2025-04-25', prio:'high', status:'work',   tags:[],            overdue:true},
+  {id:3,  name:'Подготовка мерча к сезону',                  sector:'Мерч',                   who:'Мария С.', deadline:'2025-05-10', prio:'mid',  status:'review', tags:['сезон'],     noAct:true},
+  {id:4,  name:'Программа ретрита — май 2025',               sector:'Ретриты',                who:'Анна Н.',  deadline:'2025-05-01', prio:'high', status:'review', tags:['ретрит'],    longRev:true},
+  {id:5,  name:'Лендинг для летнего ретрита',                sector:'Ретриты',                who:'Катя В.',  deadline:'2025-04-30', prio:'high', status:'work',   tags:[]},
+  {id:6,  name:'Сторис: новое расписание занятий',           sector:'Маркетинг',              who:'Катя В.',  deadline:'2025-04-29', prio:'mid',  status:'work',   tags:['быстро']},
+  {id:7,  name:'Согласовать партнёра по мерчу',              sector:'Мерч',                   who:'Анна Н.',  deadline:'2025-05-15', prio:'mid',  status:'idea',   tags:[]},
+  {id:8,  name:'Разработать пакет занятий ×20',              sector:'Продажи',                who:'Мария С.', deadline:'2025-05-05', prio:'high', status:'work',   tags:['финансы']},
+  {id:9,  name:'CRM по лидам',                               sector:'Продажи',                who:'Анна Н.',  deadline:'2025-05-20', prio:'mid',  status:'idea',   tags:[]},
+  {id:10, name:'Онлайн-запись на сайте',                     sector:'Операционка',            who:'Катя В.',  deadline:'2025-05-12', prio:'high', status:'done',   tags:[]},
+  {id:11, name:'Обучить администраторов',                    sector:'Операционка',            who:'Мария С.', deadline:'2025-05-08', prio:'mid',  status:'done',   tags:[]},
+  {id:12, name:'Реферальная программа',                      sector:'Продажи',                who:'Анна Н.',  deadline:'2025-05-25', prio:'mid',  status:'hold',   tags:[]},
+  {id:13, name:'Добавить формат «Растяжка + Массаж»',        sector:'Продукт / Тренировки',   who:'Анна Н.',  deadline:'2025-05-10', prio:'high', status:'work',   tags:['продукт']},
+  {id:14, name:'Разработать детскую программу растяжки',     sector:'Продукт / Тренировки',   who:'Мария С.', deadline:'2025-05-15', prio:'mid',  status:'idea',   tags:['новый']},
+  {id:15, name:'Записать видео-урок для онлайн-курса',       sector:'Продукт / Тренировки',   who:'Катя В.',  deadline:'2025-05-20', prio:'high', status:'work',   tags:['онлайн']},
+  {id:16, name:'Составить методику для тренеров',            sector:'Продукт / Тренировки',   who:'Анна Н.',  deadline:'2025-05-30', prio:'mid',  status:'work',   tags:['методика']},
+  {id:17, name:'Запустить TikTok-канал',                     sector:'Маркетинг',              who:'Катя В.',  deadline:'2025-05-03', prio:'high', status:'work',   tags:['соцсети']},
+  {id:18, name:'Отснять фото для Instagram',                 sector:'Маркетинг',              who:'Катя В.',  deadline:'2025-05-07', prio:'mid',  status:'idea',   tags:['контент']},
+];
+
+let ideas = [
+  {id:1, title:'TikTok для Lady Stretch',         desc:'Короткие видео тренировок, закулисье, успехи клиентов.',           sector:'Маркетинг',            score:4, fin:'Средний'},
+  {id:2, title:'Пакетные занятия ×20 со скидкой', desc:'Пакет на 20 занятий с выгодой 15% — удержание и кэшфлоу.',         sector:'Продажи',              score:4, fin:'Высокий'},
+  {id:3, title:'Партнёрство с отелями',           desc:'Загородные отели для проведения фирменных ретритов.',               sector:'Ретриты',              score:5, fin:'Высокий'},
+  {id:4, title:'Мерч с брендингом',               desc:'Леггинсы и аксессуары с логотипом — продажа онлайн и в студии.',   sector:'Мерч',                 score:3, fin:'Средний'},
+  {id:5, title:'Beauty-коллаборация',             desc:'Лидер мнений — взаимная реклама, бесплатный трафик.',               sector:'Маркетинг',            score:4, fin:'Средний'},
+  {id:6, title:'Онлайн-курс по растяжке',         desc:'Записать видеоуроки для продажи на платформе.',                    sector:'Продукт / Тренировки', score:5, fin:'Высокий'},
+  {id:7, title:'Программа лояльности',            desc:'Баллы за занятия, скидки и подарки постоянным клиентам.',           sector:'Операционка',          score:3, fin:'Средний'},
+  {id:8, title:'Корпоративный массаж',            desc:'Сертификаты на массаж как бонус сотрудникам компаний.',             sector:'Доп. услуги',          score:4, fin:'Высокий'},
+];
+
+const programs = [
+  {name:'Растяжка базовая', desc:'Для новичков',        load:92, sessions:10, color:'var(--teal)',   status:'Активна'},
+  {name:'Растяжка Pro',     desc:'Продвинутый уровень', load:78, sessions:6,  color:'var(--blue)',   status:'Активна'},
+  {name:'Йога + Стретч',    desc:'Комбо формат',        load:85, sessions:8,  color:'var(--pink)',   status:'Активна'},
+  {name:'Пилатес',          desc:'Укрепление кора',     load:65, sessions:6,  color:'var(--blue)',   status:'Активна'},
+  {name:'Массаж',           desc:'Индивидуально',       load:100,sessions:4,  color:'var(--green)',  status:'Активна'},
+  {name:'Ретрит-день',      desc:'Выходной формат',     load:50, sessions:2,  color:'var(--gold)',   status:'В разработке'},
+  {name:'Дет. растяжка',    desc:'5–12 лет',            load:0,  sessions:0,  color:'var(--purple)', status:'В разработке'},
+];
+
+const teamData = [
+  {name:'Анна Н.',  role:'Руководитель',   init:'АН', grad:'linear-gradient(135deg,var(--gold),var(--pink))'},
+  {name:'Мария С.', role:'Рук. 2 / Тренер',init:'МС', grad:'linear-gradient(135deg,var(--blue),var(--purple))'},
+  {name:'Катя В.',  role:'Маркетолог',     init:'КВ', grad:'linear-gradient(135deg,var(--green),var(--teal))'},
+];
+
+// Per-task extras
+const extras = {};
+tasks.forEach(t => {
+  extras[t.id] = {
+    desc: t.id===1 ? 'Подготовить базу клиентов, написать текст письма, настроить Mailchimp.' : '',
+    checklist: t.id===1
+      ? [{id:1,text:'Собрать базу клиентов',done:true},{id:2,text:'Написать текст письма',done:true},{id:3,text:'Согласовать с руководителем',done:false},{id:4,text:'Настроить отправку',done:false}]
+      : [{id:1,text:'Первый шаг',done:false}],
+    comments: t.id===1
+      ? [{author:'Катя В.',init:'КВ',grad:'linear-gradient(135deg,var(--green),var(--teal))',text:'База готова, 320 контактов. Жду согласования текста.',time:'26 апр, 14:22'}]
+      : [],
+    history: [{text:'Задача создана',time:'20 апр, 10:00'}, ...(t.overdue?[{text:'Дедлайн пропущен',time:'23 апр, 00:01'}]:[])],
+    scores: {impact:t.prio==='high'?5:3, finance:t.prio==='high'?4:2, urgency:t.overdue?5:t.prio==='high'?4:2, complexity:3},
+    nextCI: 10,
+  };
+});
+
+let nextTaskId = 100;
+let nextIdeaId = 100;
+
+// ═══════════════════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════════════════
+function fmtDate(d) {
+  if (!d) return '—';
+  const dt = new Date(d + 'T00:00:00');
+  return dt.toLocaleDateString('ru-RU', {day:'numeric', month:'short'});
+}
+function dlCls(d, st) {
+  if (st === 'done') return 'ok';
+  const n = new Date(); const dt = new Date(d + 'T00:00:00');
+  if (dt < n) return 'ov';
+  if (dt - n < 3*86400000) return 'soon';
+  return 'ok';
+}
+function nowStr() {
+  const d = new Date();
+  return `${d.getDate()} апр, ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+}
+function toast(msg) {
+  document.querySelectorAll('.toast').forEach(t => t.remove());
+  const t = document.createElement('div');
+  t.className = 'toast'; t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 2500);
+}
+
+function scoreCalc(imp, fin, urg, cmp) {
+  const s = (imp*2 + fin*2 + urg) / Math.max(cmp, 1);
+  let label, color, prio;
+  if (s >= 6 && urg >= 4)      { label='🔥 Срочная и важная'; color='var(--red)';    prio='high'; }
+  else if (s >= 5 && cmp <= 2) { label='⚡ Быстрая победа';   color='var(--green)';  prio='mid';  }
+  else if (s >= 5)              { label='💎 Высокий эффект';   color='var(--blue)';   prio='high'; }
+  else if (s < 3)               { label='⏸ Можно отложить';   color='var(--muted)';  prio='low';  }
+  else                          { label='📋 Обычная задача';   color='var(--orange)'; prio='mid';  }
+  return { s, label, color, prio };
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════════════════════════════
+const TABS = ['dashboard','tasks','ideas','more','alerts'];
+const TAB_LABELS = {dashboard:'Дашборд',tasks:'Задачи',ideas:'Идеи',more:'Команда',alerts:'Уведомления',kanban:'Канбан'};
+let activeTab = 'dashboard';
+let filterSector = '';
+let filterStatus = '';
+
+function goTab(id) {
+  // Hide all
+  document.querySelectorAll('.page').forEach(p => { p.style.display='none'; p.classList.remove('active'); });
+  // Show target
+  const pg = document.getElementById('tab-' + id);
+  if (!pg) return;
+  pg.style.display = 'block'; pg.classList.add('active');
+  // Topbar
+  document.getElementById('page-label').textContent = TAB_LABELS[id] || id;
+  // Nav highlight
+  TABS.forEach(t => document.getElementById('nav-'+t)?.classList.remove('active'));
+  if (document.getElementById('nav-'+id)) document.getElementById('nav-'+id).classList.add('active');
+  activeTab = id;
+  // Scroll to top
+  document.getElementById('scroll-area').scrollTop = 0;
+  // Render
+  const renders = { dashboard: renderDashboard, tasks: renderTasks, kanban: renderKanban, ideas: renderIdeas, more: renderMore, alerts: renderAlerts };
+  if (renders[id]) renders[id]();
+}
+
+function goKanban() {
+  document.querySelectorAll('.page').forEach(p => { p.style.display='none'; p.classList.remove('active'); });
+  const pg = document.getElementById('tab-kanban');
+  pg.style.display='block'; pg.classList.add('active');
+  document.getElementById('page-label').textContent = 'Канбан';
+  TABS.forEach(t => document.getElementById('nav-'+t)?.classList.remove('active'));
+  document.getElementById('nav-tasks').classList.add('active');
+  activeTab='kanban';
+  document.getElementById('scroll-area').scrollTop=0;
+  renderKanban();
+}
+
+function goTasksFiltered(sector) {
+  filterSector = sector;
+  filterStatus = '';
+  goTab('tasks');
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// DASHBOARD
+// ═══════════════════════════════════════════════════════════════════
+function renderDashboard() {
+  const total  = tasks.length;
+  const done   = tasks.filter(t => t.status==='done').length;
+  const work   = tasks.filter(t => t.status==='work').length;
+  const over   = tasks.filter(t => t.overdue && t.status!=='done').length;
+  const pct    = Math.round(done/total*100);
+
+  document.getElementById('m-total').textContent    = total;
+  document.getElementById('m-total-sub').textContent = `+${tasks.filter(t=>t.id>90).length} этой неделей`;
+  document.getElementById('m-done').textContent     = pct + '%';
+  document.getElementById('m-done-sub').textContent  = `${done} из ${total}`;
+  document.getElementById('m-work').textContent     = work;
+  document.getElementById('m-work-sub').textContent  = `${tasks.filter(t=>t.status==='review').length} на согласовании`;
+  document.getElementById('m-over').textContent     = over;
+
+  // Overdue badge on nav
+  const ob = document.getElementById('overdue-badge');
+  if (over > 0) { ob.textContent=over; ob.style.display='block'; } else ob.style.display='none';
+
+  // Focus today
+  const focusTasks = tasks.filter(t => t.status==='work' && !t.overdue).slice(0,3);
+  document.getElementById('focus-items').innerHTML = focusTasks.map(t =>
+    `<div class="focus-item">
+      <div class="focus-check" onclick="this.classList.toggle('done');this.textContent=this.classList.contains('done')?'✓':''"></div>
+      <span>${t.name} <span style="color:var(--muted);font-size:11px">— ${t.who}</span></span>
+    </div>`
+  ).join('');
+
+  // Week bars
+  const barData = [[6,4],[9,6],[7,5],[11,8],[8,7],[13,10],[9,5],[5,2]];
+  const labels  = ['Нд1','Нд2','Нд3','Нд4','Нд5','Нд6','Нд7','Тек'];
+  document.getElementById('week-bars').innerHTML = barData.map((v,i) =>
+    `<div class="cb-grp">
+      <div class="cb-pair">
+        <div class="cb" style="height:${v[0]*5}px;background:var(--blue)"></div>
+        <div class="cb" style="height:${v[1]*5}px;background:var(--green)"></div>
+      </div>
+      <div class="cb-lbl">${labels[i]}</div>
+    </div>`
+  ).join('');
+
+  // Sector bars
+  const sectors = ['Продажи','Маркетинг','Доп. услуги','Мерч','Ретриты','Операционка','Продукт / Тренировки'];
+  document.getElementById('sector-bars-dash').innerHTML = sectors.map(s => {
+    const st = tasks.filter(t=>t.sector===s);
+    const sd = st.filter(t=>t.status==='done').length;
+    const pct = st.length ? Math.round(sd/st.length*100) : 0;
+    return `<div class="sb-row">
+      <div class="sb-name">${s.split('/')[0].trim()}</div>
+      <div class="sb-track"><div class="sb-fill" style="width:${pct}%;background:${SC[s]||'var(--muted)'}"></div></div>
+      <div class="sb-pct">${pct}%</div>
+    </div>`;
+  }).join('');
+
+  // Alerts mini
+  const alertItems = [
+    ...tasks.filter(t=>t.overdue&&t.status!=='done').map(t=>`<div class="alert-row"><span class="tag t-red">Просрочено</span><span>${t.name.slice(0,30)}${t.name.length>30?'…':''}</span></div>`),
+    ...tasks.filter(t=>t.noAct).map(t=>`<div class="alert-row"><span class="tag t-orange">Нет активности</span><span>${t.name.slice(0,28)}…</span></div>`),
+    ...tasks.filter(t=>t.longRev).map(t=>`<div class="alert-row"><span class="tag t-orange">Долго на согл.</span><span>${t.name.slice(0,28)}…</span></div>`),
+  ];
+  document.getElementById('alerts-mini').innerHTML = alertItems.slice(0,4).join('') ||
+    '<div style="font-size:12px;color:var(--green);padding:4px 0">✓ Всё под контролем</div>';
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// TASKS
+// ═══════════════════════════════════════════════════════════════════
+const SECTORS = ['Все','Продажи','Маркетинг','Доп. услуги','Мерч','Ретриты','Операционка','Продукт / Тренировки'];
+const STATUSES = [{k:'',l:'Все'},{k:'idea',l:'Идея'},{k:'work',l:'В работе'},{k:'review',l:'На согл.'},{k:'done',l:'Выполнено'},{k:'hold',l:'Отложено'}];
+
+function renderSectorChips() {
+  document.getElementById('sector-chips').innerHTML = SECTORS.map(s =>
+    `<div class="chip${filterSector===(s==='Все'?'':s)?' active':''}" onclick="setSector('${s}')">${s==='Продукт / Тренировки'?'🏋️ Продукт':s}</div>`
+  ).join('');
+}
+
+function renderStatusPills() {
+  document.getElementById('status-pills').innerHTML = STATUSES.map(s => {
+    const col = s.k ? STATUS_COL[s.k] : 'var(--muted)';
+    const active = filterStatus === s.k;
+    return `<div class="status-pill${active?' active':''}" style="${active?`background:${col}22;color:${col};border-color:${col}66`:''}" onclick="setStatus('${s.k}')">${s.l}</div>`;
+  }).join('');
+}
+
+function setSector(s) { filterSector = s==='Все'?'':s; renderTasks(); }
+function setStatus(s) { filterStatus = s; renderTasks(); }
+
+function renderTasks() {
+  renderSectorChips();
+  renderStatusPills();
+  const el = document.getElementById('task-list');
+  let list = tasks.filter(t => {
+    if (filterSector && t.sector !== filterSector) return false;
+    if (filterStatus && t.status !== filterStatus) return false;
+    return true;
+  });
+  list.sort((a,b) => (b.pinned||0)-(a.pinned||0) || (b.overdue||0)-(a.overdue||0) || new Date(a.deadline)-new Date(b.deadline));
+
+  if (!list.length) {
+    el.innerHTML = `<div class="empty"><div class="empty-icon">${filterSector||filterStatus?'🔍':'✅'}</div><div class="empty-text">${filterSector||filterStatus?'Нет задач по фильтру':'Все задачи выполнены!'}</div></div>`;
+    return;
+  }
+
+  el.innerHTML = list.map(t => {
+    const dc = dlCls(t.deadline, t.status);
+    return `<div class="task-card${t.overdue?' overdue':''}${t.pinned?' pinned':''}" onclick="openPanel(${t.id})">
+      <div class="tc-prio" style="background:${PRIO_COL[t.prio]};margin-left:-14px;margin-right:10px"></div>
+      <div class="tc-body">
+        <div class="tc-name">${t.name}</div>
+        <div class="tc-meta">
+          <span class="tag" style="background:${SC[t.sector]||'var(--muted)'}22;color:${SC[t.sector]||'var(--muted)'}">${t.sector}</span>
+          <span class="tag" style="background:${STATUS_COL[t.status]}22;color:${STATUS_COL[t.status]}">${STATUS_LBL[t.status]}</span>
+          ${t.tags.slice(0,2).map(tg=>`<span class="tag t-muted">${tg}</span>`).join('')}
+          ${t.overdue?'<span class="tag t-red">!</span>':''}
+          <span class="tc-who">${t.who}</span>
+          <span class="tc-dl ${dc}">${fmtDate(t.deadline)}</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// KANBAN
+// ═══════════════════════════════════════════════════════════════════
+function renderKanban() {
+  const cols = [
+    {k:'idea',l:'Идея',c:'var(--purple)'},
+    {k:'work',l:'В работе',c:'var(--blue)'},
+    {k:'review',l:'На согл.',c:'var(--orange)'},
+    {k:'done',l:'Выполнено',c:'var(--green)'},
+    {k:'hold',l:'Отложено',c:'var(--muted)'},
+  ];
+  document.getElementById('kanban-board').innerHTML = cols.map(col => {
+    const ct = tasks.filter(t => t.status===col.k);
+    return `<div class="k-col">
+      <div class="k-col-head">
+        <div style="width:6px;height:6px;border-radius:50%;background:${col.c}"></div>
+        <div class="k-col-title" style="color:${col.c}">${col.l}</div>
+        <div class="k-col-cnt">${ct.length}</div>
+      </div>
+      <div class="k-cards">
+        ${ct.map(t => {
+          const dc = dlCls(t.deadline, t.status);
+          return `<div class="k-card" onclick="openPanel(${t.id})">
+            <div class="kc-name">${t.name}</div>
+            <div class="kc-foot">
+              <span class="tag" style="background:${SC[t.sector]||'var(--muted)'}22;color:${SC[t.sector]||'var(--muted)'};font-size:9.5px">${t.sector.split('/')[0].trim()}</span>
+              <span class="kc-who">${t.who}</span>
+              <span class="kc-dl ${dc}">${fmtDate(t.deadline)}</span>
+            </div>
+          </div>`;
+        }).join('')}
+        <button class="btn btn-ghost btn-sm btn-full" style="margin-top:4px;font-size:11px" onclick="openNewTask()">+ Задача</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// IDEAS
+// ═══════════════════════════════════════════════════════════════════
+function renderIdeas() {
+  document.getElementById('idea-list').innerHTML = ideas.map(i => {
+    const fc = i.fin==='Высокий'?'t-green':i.fin==='Средний'?'t-blue':'t-muted';
+    return `<div class="idea-card">
+      <div class="idea-title">${i.title}</div>
+      <div class="idea-desc">${i.desc}</div>
+      <div class="idea-foot">
+        <span class="tag" style="background:${SC[i.sector]||'var(--muted)'}22;color:${SC[i.sector]||'var(--muted)'}">${i.sector}</span>
+        <span class="stars">${'★'.repeat(i.score)}${'☆'.repeat(5-i.score)}</span>
+        <span class="tag ${fc}">${i.fin}</span>
+      </div>
+      <div class="idea-actions">
+        <button class="btn btn-ghost btn-sm" style="flex:1" onclick="toast('💡 ${i.title}')">Детали</button>
+        <button class="btn btn-primary btn-sm" style="flex:2" onclick="ideaToTask(${i.id})">→ В задачу</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function ideaToTask(id) {
+  const idea = ideas.find(i => i.id===id);
+  if (!idea) return;
+  openNewTask();
+  setTimeout(() => {
+    document.getElementById('nt-name').value = idea.title;
+    // Set sector
+    const sel = document.getElementById('nt-sector');
+    Array.from(sel.options).forEach(o => { if(o.value===idea.sector||o.text===idea.sector) sel.value=o.value; });
+    document.getElementById('nt-desc').value = idea.desc;
+    // Add source banner
+    const body = document.querySelector('#modal-task .modal-body');
+    let banner = document.getElementById('idea-banner');
+    if (!banner) { banner=document.createElement('div'); banner.id='idea-banner'; body.insertBefore(banner,body.firstChild); }
+    banner.style.cssText='background:rgba(142,108,212,.15);border:1px solid rgba(142,108,212,.3);border-radius:9px;padding:9px 12px;margin-bottom:12px;font-size:12px;color:var(--purple)';
+    banner.innerHTML = `💡 Из идеи: <b>${idea.title}</b> · ${'★'.repeat(idea.score)} · ${idea.fin} потенциал`;
+    document.getElementById('modal-task-title').textContent = 'Создать из идеи';
+    toast(`💡 ${idea.title} → форма задачи`);
+  }, 60);
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// MORE (Team + Product + Alerts)
+// ═══════════════════════════════════════════════════════════════════
+function renderMore() {
+  renderTeam();
+  renderProduct();
+  renderAlertsSection();
+}
+
+function renderAlertsSection() {
+  const el = document.getElementById('alerts-full');
+  const alerts = [
+    {icon:'🚨',text:'Email-рассылка просрочена',sub:'22 апр · Катя В.',cls:'t-red',lbl:'Просрочено'},
+    {icon:'🚨',text:'Прайс на массаж просрочен',sub:'25 апр · Мария С.',cls:'t-red',lbl:'Просрочено'},
+    {icon:'⏸',text:'Мерч — нет активности 5 дней',sub:'Последняя: 23 апр · Мария С.',cls:'t-orange',lbl:'Нет активности'},
+    {icon:'⌛',text:'Программа ретрита 8 дней на согл.',sub:'Ожидает · Анна Н.',cls:'t-orange',lbl:'Долго на согл.'},
+    {icon:'⚡',text:'Катя В. — 9 активных задач',sub:'Рекомендуется перераспределить',cls:'t-red',lbl:'Перегруз'},
+  ];
+  el.innerHTML = alerts.map(a => `
+    <div class="task-card" style="margin-bottom:8px;cursor:default">
+      <span style="font-size:18px">${a.icon}</span>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:500">${a.text}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">${a.sub}</div>
+      </div>
+      <span class="tag ${a.cls}">${a.lbl}</span>
+    </div>`).join('');
+}
+
+function renderAlerts() {
+  document.getElementById('tab-alerts').innerHTML = '<div style="padding:16px">' + (() => {
+    const alerts = [
+      {icon:'🚨',text:'Email-рассылка просрочена',sub:'22 апр · Катя В.',cls:'t-red',lbl:'Просрочено'},
+      {icon:'🚨',text:'Прайс на массаж просрочен',sub:'25 апр · Мария С.',cls:'t-red',lbl:'Просрочено'},
+      {icon:'⏸',text:'Мерч — нет активности 5 дней',sub:'Последняя: 23 апр · Мария С.',cls:'t-orange',lbl:'Нет активности'},
+      {icon:'⌛',text:'Программа ретрита 8 дней на согл.',sub:'Ожидает · Анна Н.',cls:'t-orange',lbl:'Долго на согл.'},
+      {icon:'⚡',text:'Катя В. — 9 активных задач',sub:'Рекомендуется перераспределить',cls:'t-red',lbl:'Перегруз'},
+      {icon:'📅',text:'Дедлайн завтра: Лендинг ретрита',sub:'30 апр · Катя В.',cls:'t-blue',lbl:'Скоро'},
+      {icon:'📊',text:'Готов отчёт — неделя 17',sub:'28 апр 2025',cls:'t-green',lbl:'Отчёт'},
+      {icon:'🏕',text:'Ретриты отстают: 30% выполнения',sub:'Проверьте задачи',cls:'t-orange',lbl:'Отставание'},
+    ];
+    return `<div class="sec-head"><div class="sec-title">🔔 Уведомления</div></div>` +
+      alerts.map(a => `<div class="task-card" style="margin-bottom:8px;cursor:default"><span style="font-size:18px">${a.icon}</span><div style="flex:1"><div style="font-size:13px;font-weight:500">${a.text}</div><div style="font-size:11px;color:var(--muted);margin-top:2px">${a.sub}</div></div><span class="tag ${a.cls}">${a.lbl}</span></div>`).join('');
+  })() + '</div>';
+}
+
+function renderTeam() {
+  const el = document.getElementById('team-list');
+  el.innerHTML = teamData.map(m => {
+    const myTasks  = tasks.filter(t => t.who===m.name);
+    const myActive = myTasks.filter(t => t.status!=='done');
+    const myDone   = myTasks.filter(t => t.status==='done').length;
+    const myOver   = myTasks.filter(t => t.overdue&&t.status!=='done').length;
+    const pct = myTasks.length ? Math.round(myDone/myTasks.length*100) : 0;
+    const barColor = pct<50?'var(--red)':pct<75?'var(--orange)':'var(--green)';
+    return `<div class="team-card" onclick="goTasksFiltered('');document.getElementById('status-pills') && setWhoFilter('${m.name}')">
+      <div class="tc-head-row">
+        <div class="t-avatar" style="background:${m.grad}">${m.init}</div>
+        <div>
+          <div class="t-name">${m.name}</div>
+          <div class="t-role">${m.role}</div>
+        </div>
+        <div style="margin-left:auto;font-size:11px;color:var(--muted);background:var(--bg3);padding:3px 8px;border-radius:6px">→ Задачи</div>
+      </div>
+      <div class="t-stats">
+        <div class="t-stat"><div class="t-sv">${myTasks.length}</div><div class="t-sl">задач</div></div>
+        <div class="t-stat"><div class="t-sv" style="color:var(--green)">${myDone}</div><div class="t-sl">готово</div></div>
+        <div class="t-stat"><div class="t-sv" style="color:${myOver?'var(--red)':'var(--muted)'}">${myOver}</div><div class="t-sl">просроч.</div></div>
+      </div>
+      <div class="t-bar-wrap"><div class="t-bar-fill" style="width:${pct}%;background:${barColor}"></div></div>
+      <div class="t-tasks-mini">
+        ${myActive.slice(0,3).map(t=>`<div class="t-task-mini"><div class="t-task-dot" style="background:${STATUS_COL[t.status]}"></div>${t.name.slice(0,36)}${t.name.length>36?'…':''}</div>`).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// Filter tasks by person (called from team card click)
+let filterWho = '';
+function setWhoFilter(who) {
+  filterWho = who;
+  filterSector = '';
+  filterStatus = '';
+  goTab('tasks');
+}
+// Patch renderTasks to also handle who filter
+const _renderTasksOrig = renderTasks;
+// Override renderTasks to include who filter
+function renderTasks() {
+  renderSectorChips();
+  renderStatusPills();
+  const el = document.getElementById('task-list');
+  let list = tasks.filter(t => {
+    if (filterSector && t.sector !== filterSector) return false;
+    if (filterStatus && t.status !== filterStatus) return false;
+    if (filterWho && t.who !== filterWho) return false;
+    return true;
+  });
+  list.sort((a,b) => (b.pinned||0)-(a.pinned||0) || (b.overdue||0)-(a.overdue||0) || new Date(a.deadline)-new Date(b.deadline));
+
+  if (!list.length) {
+    el.innerHTML = `<div class="empty"><div class="empty-icon">${filterSector||filterStatus||filterWho?'🔍':'✅'}</div><div class="empty-text">${filterSector||filterStatus||filterWho?'Нет задач по фильтру':'Все задачи выполнены!'}</div></div>`;
+    return;
+  }
+
+  el.innerHTML = list.map(t => {
+    const dc = dlCls(t.deadline, t.status);
+    return `<div class="task-card${t.overdue?' overdue':''}${t.pinned?' pinned':''}" onclick="openPanel(${t.id})">
+      <div class="tc-prio" style="background:${PRIO_COL[t.prio]};margin-left:-14px;margin-right:10px"></div>
+      <div class="tc-body">
+        <div class="tc-name">${t.name}</div>
+        <div class="tc-meta">
+          <span class="tag" style="background:${SC[t.sector]||'var(--muted)'}22;color:${SC[t.sector]||'var(--muted)'}">${t.sector.split('/')[0].trim()}</span>
+          <span class="tag" style="background:${STATUS_COL[t.status]}22;color:${STATUS_COL[t.status]}">${STATUS_LBL[t.status]}</span>
+          ${t.tags.slice(0,1).map(tg=>`<span class="tag t-muted">${tg}</span>`).join('')}
+          ${t.overdue?'<span class="tag t-red">!</span>':''}
+          <span class="tc-who">${t.who}</span>
+          <span class="tc-dl ${dc}">${fmtDate(t.deadline)}</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderProduct() {
+  const el = document.getElementById('prog-list');
+  el.innerHTML = programs.map(p => `
+    <div class="prog-card">
+      <div class="prog-bar-top" style="background:${p.color}"></div>
+      <div class="prog-body">
+        <div class="prog-name">${p.name}</div>
+        <div class="prog-desc">${p.desc}</div>
+        <div class="prog-stats">
+          <span class="prog-stat">📅 ${p.sessions} сеансов/нед</span>
+          <span class="prog-stat">👥 ${p.load}% заполн.</span>
+          <span class="tag ${p.status==='Активна'?'t-green':'t-orange'}">${p.status}</span>
+        </div>
+        <div class="load-bar"><div class="load-fill" style="width:${p.load}%;background:${p.load>=90?'var(--red)':p.load>=70?'var(--orange)':'var(--green)'}"></div></div>
+      </div>
+    </div>`).join('');
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// TASK PANEL
+// ═══════════════════════════════════════════════════════════════════
+let activePanelId = null;
+
+function openPanel(id) {
+  const t = tasks.find(x => x.id===id);
+  if (!t) return;
+  activePanelId = id;
+  const ex = extras[id];
+
+  // Title
+  const titleEl = document.getElementById('panel-title');
+  titleEl.textContent = t.name;
+  titleEl.onblur = () => { t.name = titleEl.textContent.trim(); ex.history.push({text:'Название изменено',time:nowStr()}); renderTasks(); };
+
+  // Status buttons
+  const statuses = [{k:'idea',l:'Идея'},{k:'work',l:'В работе'},{k:'review',l:'На согл.'},{k:'done',l:'Выполнено'},{k:'hold',l:'Отложено'}];
+  document.getElementById('panel-statuses').innerHTML = statuses.map(s => {
+    const c = STATUS_COL[s.k];
+    const active = t.status===s.k;
+    return `<button class="ps-btn" style="background:${active?c+'22':'transparent'};color:${active?c:'var(--muted)'};border-color:${active?c+'55':'var(--border)'}" onclick="setPanelStatus('${s.k}')">${active?'● ':''} ${s.l}</button>`;
+  }).join('');
+
+  // Meta
+  document.getElementById('pf-sector').value   = t.sector;
+  document.getElementById('pf-who').value       = t.who;
+  document.getElementById('pf-deadline').value  = t.deadline || '';
+  document.getElementById('pf-prio').value      = t.prio;
+  document.getElementById('pf-desc').value      = ex.desc || '';
+
+  // Scores
+  ['impact','finance','urgency','complexity'].forEach(k => {
+    document.getElementById('ps-'+k).value = ex.scores[k];
+    document.getElementById('psv-'+k).textContent = ex.scores[k];
+  });
+  onScoreChange();
+
+  // Tags
+  renderPanelTags();
+  // Checklist
+  renderPanelChecklist();
+  // Comments
+  renderPanelComments();
+  // History
+  renderPanelHistory();
+
+  // Open
+  document.getElementById('panel-overlay').classList.add('open');
+  document.getElementById('task-panel').classList.add('open');
+  if (tg) tg.BackButton.show();
+}
+
+function closePanel() {
+  document.getElementById('panel-overlay').classList.remove('open');
+  document.getElementById('task-panel').classList.remove('open');
+  activePanelId = null;
+  if (tg) tg.BackButton.hide();
+  renderTasks();
+}
+
+if (tg) tg.BackButton.onClick(closePanel);
+
+function setPanelStatus(st) {
+  const t = tasks.find(x=>x.id===activePanelId); if(!t) return;
+  extras[t.id].history.push({text:`Статус → ${STATUS_LBL[st]}`,time:nowStr()});
+  t.status = st; if(st==='done')t.overdue=false;
+  openPanel(t.id);
+  toast('Статус: ' + STATUS_LBL[st]);
+}
+
+function saveField(field, val) {
+  const t = tasks.find(x=>x.id===activePanelId); if(!t) return;
+  const ex = extras[t.id];
+  if(field==='sector')   { t.sector=val;   ex.history.push({text:`Сектор → ${val}`,time:nowStr()}); }
+  if(field==='who')      { t.who=val;       ex.history.push({text:`Ответственный → ${val}`,time:nowStr()}); }
+  if(field==='deadline') { t.deadline=val;  ex.history.push({text:`Дедлайн → ${fmtDate(val)}`,time:nowStr()}); }
+  if(field==='prio')     { t.prio=val;      ex.history.push({text:`Приоритет → ${val}`,time:nowStr()}); }
+  if(field==='desc')     { ex.desc=val; }
+}
+
+function onScoreChange() {
+  const ex = extras[activePanelId]; if(!ex) return;
+  ['impact','finance','urgency','complexity'].forEach(k => {
+    const v = +document.getElementById('ps-'+k).value;
+    ex.scores[k] = v;
+    document.getElementById('psv-'+k).textContent = v;
+  });
+  const {s,label,color} = scoreCalc(ex.scores.impact,ex.scores.finance,ex.scores.urgency,ex.scores.complexity);
+  const b = document.getElementById('ps-badge');
+  const l = document.getElementById('ps-score-lbl');
+  if(b){ b.textContent=label; b.style.background=color+'22'; b.style.color=color; }
+  if(l) l.textContent = `Оценка: ${s.toFixed(1)} / 10`;
+}
+
+// Tags
+function renderPanelTags() {
+  const t = tasks.find(x=>x.id===activePanelId); if(!t) return;
+  document.getElementById('pf-tags').innerHTML = t.tags.map((tg,i) =>
+    `<span class="tag t-muted">${tg}<span style="cursor:pointer;margin-left:3px;opacity:.6" onclick="removeTag(${i})">×</span></span>`
+  ).join('');
+}
+function addTag(val) {
+  const t = tasks.find(x=>x.id===activePanelId); if(!t) return;
+  if(!t.tags.includes(val)) { t.tags.push(val); renderPanelTags(); }
+}
+function removeTag(idx) {
+  const t = tasks.find(x=>x.id===activePanelId); if(!t) return;
+  t.tags.splice(idx,1); renderPanelTags();
+}
+
+// Checklist
+function renderPanelChecklist() {
+  const ex = extras[activePanelId]; if(!ex) return;
+  const total = ex.checklist.length;
+  const done  = ex.checklist.filter(c=>c.done).length;
+  const pct   = total ? Math.round(done/total*100) : 0;
+  document.getElementById('cl-fill').style.width = pct+'%';
+  document.getElementById('cl-pct').textContent  = `${done}/${total} · ${pct}%`;
+  document.getElementById('cl-list').innerHTML   = ex.checklist.map(c =>
+    `<div class="cl-item">
+      <input type="checkbox" class="cl-cb" ${c.done?'checked':''} onchange="toggleCI(${c.id},this.checked)">
+      <span class="cl-text${c.done?' done':''}" onclick="this.previousElementSibling.click()">${c.text}</span>
+      <button class="cl-del" onclick="deleteCI(${c.id})">×</button>
+    </div>`
+  ).join('');
+}
+function toggleCI(ciId, val) {
+  const ex = extras[activePanelId]; if(!ex) return;
+  const ci = ex.checklist.find(c=>c.id===ciId); if(ci){ ci.done=val; renderPanelChecklist(); }
+}
+function deleteCI(ciId) {
+  const ex = extras[activePanelId]; if(!ex) return;
+  ex.checklist = ex.checklist.filter(c=>c.id!==ciId); renderPanelChecklist();
+}
+function addClItem() {
+  const inp = document.getElementById('cl-new-input'); if(!inp||!inp.value.trim()) return;
+  const ex = extras[activePanelId]; if(!ex) return;
+  ex.checklist.push({id:ex.nextCI++, text:inp.value.trim(), done:false});
+  inp.value=''; renderPanelChecklist();
+}
+
+// Comments
+function renderPanelComments() {
+  const ex = extras[activePanelId]; if(!ex) return;
+  document.getElementById('comment-list').innerHTML = ex.comments.map(c =>
+    `<div class="comment">
+      <div class="c-av" style="background:${c.grad}">${c.init}</div>
+      <div class="c-bubble">
+        <div class="c-author">${c.author}</div>
+        <div class="c-text">${c.text}</div>
+        <div class="c-time">${c.time}</div>
+      </div>
+    </div>`
+  ).join('') || '<div style="font-size:12px;color:var(--muted2);padding:4px 0">Пока нет комментариев</div>';
+}
+function addComment() {
+  const inp = document.getElementById('comment-input'); if(!inp||!inp.value.trim()) return;
+  const ex = extras[activePanelId]; if(!ex) return;
+  ex.comments.push({author:'Анна Н.',init:'АН',grad:'linear-gradient(135deg,var(--gold),var(--pink))',text:inp.value.trim(),time:nowStr()});
+  ex.history.push({text:'Добавлен комментарий',time:nowStr()});
+  inp.value=''; renderPanelComments(); renderPanelHistory();
+}
+
+// History
+function renderPanelHistory() {
+  const ex = extras[activePanelId]; if(!ex) return;
+  document.getElementById('hist-list').innerHTML = [...ex.history].reverse().map(h =>
+    `<div class="hist-item">
+      <div class="hist-dot"></div>
+      <div><div class="hist-text">${h.text}</div><div class="hist-time">${h.time}</div></div>
+    </div>`
+  ).join('');
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// MODALS
+// ═══════════════════════════════════════════════════════════════════
+function openModal(id) { document.getElementById('modal-'+id).classList.add('open'); }
+function closeModal(id) {
+  document.getElementById('modal-'+id).classList.remove('open');
+  const banner = document.getElementById('idea-banner');
+  if(banner) banner.remove();
+  document.getElementById('modal-task-title').textContent = 'Новая задача';
+}
+
+function openNewTask()  { calcScore(); openModal('task'); }
+function openNewIdea()  { openModal('idea'); }
+
+function calcScore() {
+  const i=+(document.getElementById('ns-impact')||{value:3}).value;
+  const f=+(document.getElementById('ns-finance')||{value:3}).value;
+  const u=+(document.getElementById('ns-urgency')||{value:3}).value;
+  const c=+(document.getElementById('ns-complexity')||{value:3}).value;
+  document.getElementById('nsv-i').textContent=i;
+  document.getElementById('nsv-f').textContent=f;
+  document.getElementById('nsv-u').textContent=u;
+  document.getElementById('nsv-c').textContent=c;
+  const {s,label,color,prio} = scoreCalc(i,f,u,c);
+  const b=document.getElementById('ns-badge'),l=document.getElementById('ns-lbl'),h=document.getElementById('ns-prio-hint');
+  if(b){b.textContent=label;b.style.background=color+'22';b.style.color=color;}
+  if(l) l.textContent=`Оценка: ${s.toFixed(1)}`;
+  if(h) h.textContent=`→ Приоритет: ${prio==='high'?'Высокий':prio==='mid'?'Средний':'Низкий'}`;
+  const ps=document.getElementById('nt-prio');
+  if(ps) ps.value=prio;
+}
+
+function createTask() {
+  const name = document.getElementById('nt-name').value.trim();
+  if (!name) { toast('Введите название задачи'); return; }
+  const id = nextTaskId++;
+  const i=+(document.getElementById('ns-impact').value);
+  const f=+(document.getElementById('ns-finance').value);
+  const u=+(document.getElementById('ns-urgency').value);
+  const c=+(document.getElementById('ns-complexity').value);
+  const newTask = {
+    id,
+    name,
+    sector:   document.getElementById('nt-sector').value,
+    who:      document.getElementById('nt-who').value,
+    deadline: document.getElementById('nt-deadline').value,
+    prio:     document.getElementById('nt-prio').value,
+    status:   'work',
+    tags:     [],
+  };
+  tasks.unshift(newTask);
+  extras[id] = {
+    desc: document.getElementById('nt-desc').value,
+    checklist: [{id:1,text:'Первый шаг',done:false}],
+    comments: [],
+    history: [{text:'Задача создана',time:nowStr()}],
+    scores: {impact:i,finance:f,urgency:u,complexity:c},
+    nextCI: 2,
+  };
+  // Reset form
+  ['nt-name','nt-desc'].forEach(x=>document.getElementById(x).value='');
+  document.getElementById('nt-deadline').value='';
+  closeModal('task');
+  toast(`✓ Задача «${name.slice(0,25)}» создана`);
+  filterWho=''; filterSector=''; filterStatus='';
+  renderTasks();
+  renderDashboard();
+}
+
+function createIdea() {
+  const name = document.getElementById('ni-name').value.trim();
+  if (!name) { toast('Введите название идеи'); return; }
+  ideas.unshift({
+    id: nextIdeaId++,
+    title: name,
+    desc:   document.getElementById('ni-desc').value,
+    sector: document.getElementById('ni-sector').value,
+    score:  +document.getElementById('ni-score').value,
+    fin:    document.getElementById('ni-fin').value.split('—')[0].trim(),
+  });
+  ['ni-name','ni-desc'].forEach(x=>document.getElementById(x).value='');
+  closeModal('idea');
+  toast(`💡 Идея «${name.slice(0,25)}» сохранена`);
+  if (activeTab==='ideas') renderIdeas();
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// AIRTABLE
+// ═══════════════════════════════════════════════════════════════════
+const AT_TOKEN   = 'patG3yslkypoM0194.2bd0f8803abcbf4f80dc97d387651bf52b8da06d9b21d38f90db4f859ca09e73';
+const AT_BASE    = 'appJY4FEpkcBlsdG0';
+const AT_TABLE   = 'tblUuMqJiCr4HRuCL';
+const AT_URL     = `https://api.airtable.com/v0/${AT_BASE}/${AT_TABLE}`;
+const AT_HEADERS = { 'Authorization': `Bearer ${AT_TOKEN}`, 'Content-Type': 'application/json' };
+
+// Show loading state
+function showLoader(msg) {
+  let el = document.getElementById('at-loader');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'at-loader';
+    el.style.cssText = 'position:fixed;top:60px;left:0;right:0;background:var(--card2);border-bottom:1px solid var(--border);padding:10px 16px;font-size:12.5px;color:var(--muted);z-index:400;display:flex;align-items:center;gap:8px';
+    el.innerHTML = '<div style="width:12px;height:12px;border:2px solid var(--gold);border-top-color:transparent;border-radius:50%;animation:spin .7s linear infinite"></div><span id="at-loader-text"></span>';
+    const style = document.createElement('style');
+    style.textContent = '@keyframes spin{to{transform:rotate(360deg)}}';
+    document.head.appendChild(style);
+    document.body.appendChild(el);
+  }
+  document.getElementById('at-loader-text').textContent = msg;
+  el.style.display = 'flex';
+}
+function hideLoader() {
+  const el = document.getElementById('at-loader');
+  if (el) el.style.display = 'none';
+}
+
+// Map Airtable record → our task format
+function atToTask(rec) {
+  const f = rec.fields;
+  return {
+    id:       rec.id,
+    atId:     rec.id,
+    name:     f.Name     || '',
+    sector:   f.Sector   || 'Операционка',
+    who:      f.Who      || 'Анна Н.',
+    deadline: f.Deadline || '',
+    prio:     f.Priority === 'High' ? 'high' : f.Priority === 'Low' ? 'low' : 'mid',
+    status:   f.Status   === 'Done' ? 'done' : f.Status === 'In progress' ? 'work' : f.Status === 'On review' ? 'review' : f.Status === 'Idea' ? 'idea' : f.Status === 'Hold' ? 'hold' : 'work',
+    tags:     f.Tags ? f.Tags.split(',').map(t=>t.trim()).filter(Boolean) : [],
+    overdue:  f.Overdue  || false,
+  };
+}
+
+// Map our task → Airtable fields
+function taskToAt(t) {
+  return {
+    Name:     t.name,
+    Sector:   t.sector,
+    Who:      t.who,
+    Deadline: t.deadline || null,
+    Priority: t.prio === 'high' ? 'High' : t.prio === 'low' ? 'Low' : 'Medium',
+    Status:   t.status === 'done' ? 'Done' : t.status === 'work' ? 'In progress' : t.status === 'review' ? 'On review' : t.status === 'idea' ? 'Idea' : t.status === 'hold' ? 'Hold' : 'In progress',
+    Tags:     t.tags ? t.tags.join(', ') : '',
+    Overdue:  t.overdue || false,
+  };
+}
+
+// Load all tasks from Airtable
+async function loadFromAirtable() {
+  showLoader('Загружаем задачи...');
+  try {
+    const res  = await fetch(AT_URL + '?pageSize=100', { headers: AT_HEADERS });
+    const data = await res.json();
+    if (data.records && data.records.length > 0) {
+      // Replace tasks with Airtable data
+      tasks = data.records.map(atToTask);
+      // Init extras for loaded tasks
+      tasks.forEach(t => {
+        if (!extras[t.id]) {
+          extras[t.id] = {
+            desc: '', checklist: [{id:1,text:'Первый шаг',done:false}],
+            comments: [], history: [{text:'Задача загружена из базы',time:nowStr()}],
+            scores: {impact:3,finance:3,urgency:3,complexity:3}, nextCI: 2,
+          };
+        }
+      });
+      toast(`✓ Загружено ${tasks.length} задач из базы`);
+    } else if (data.error) {
+      toast('⚠️ Ошибка загрузки: ' + data.error.message);
+      // Если в базе пусто — загружаем начальные задачи
+      await seedAirtable();
+    } else {
+      // Пустая база — заполняем начальными данными
+      await seedAirtable();
+    }
+  } catch(e) {
+    toast('⚠️ Нет соединения — работаем офлайн');
+  }
+  hideLoader();
+  renderDashboard();
+}
+
+// Save initial tasks to Airtable (first launch)
+async function seedAirtable() {
+  showLoader('Первый запуск — сохраняем задачи...');
+  // Send in batches of 10 (Airtable limit)
+  const initialTasks = tasks.slice(0, 10);
+  try {
+    const records = initialTasks.map(t => ({ fields: taskToAt(t) }));
+    const res  = await fetch(AT_URL, {
+      method: 'POST',
+      headers: AT_HEADERS,
+      body: JSON.stringify({ records })
+    });
+    const data = await res.json();
+    if (data.records) {
+      // Update local tasks with Airtable IDs
+      data.records.forEach((rec, i) => {
+        initialTasks[i].atId = rec.id;
+        initialTasks[i].id   = rec.id;
+      });
+      toast(`✓ ${data.records.length} задач сохранено в базу`);
+    }
+  } catch(e) {
+    toast('⚠️ Не удалось сохранить в базу');
+  }
+}
+
+// Create task in Airtable
+async function createTaskInAT(task) {
+  try {
+    const res  = await fetch(AT_URL, {
+      method: 'POST',
+      headers: AT_HEADERS,
+      body: JSON.stringify({ records: [{ fields: taskToAt(task) }] })
+    });
+    const data = await res.json();
+    if (data.records && data.records[0]) {
+      task.atId = data.records[0].id;
+      task.id   = data.records[0].id;
+      toast('✓ Задача сохранена в базу');
+    }
+  } catch(e) {
+    toast('⚠️ Сохранено локально (нет связи)');
+  }
+}
+
+// Update task in Airtable
+async function updateTaskInAT(task) {
+  if (!task.atId) return;
+  try {
+    await fetch(`${AT_URL}/${task.atId}`, {
+      method: 'PATCH',
+      headers: AT_HEADERS,
+      body: JSON.stringify({ fields: taskToAt(task) })
+    });
+  } catch(e) {
+    // Silent fail — will sync next time
+  }
+}
+
+// Delete task in Airtable
+async function deleteTaskInAT(atId) {
+  if (!atId) return;
+  try {
+    await fetch(`${AT_URL}/${atId}`, { method: 'DELETE', headers: AT_HEADERS });
+  } catch(e) {}
+}
+
+// Override createTask to also save to Airtable
+const _origCreateTask = createTask;
+async function createTask() {
+  const name = document.getElementById('nt-name').value.trim();
+  if (!name) { toast('Введите название задачи'); return; }
+  const id = 'local_' + nextTaskId++;
+  const i=+(document.getElementById('ns-impact').value);
+  const f=+(document.getElementById('ns-finance').value);
+  const u=+(document.getElementById('ns-urgency').value);
+  const c=+(document.getElementById('ns-complexity').value);
+  const newTask = {
+    id, atId: null, name,
+    sector:   document.getElementById('nt-sector').value,
+    who:      document.getElementById('nt-who').value,
+    deadline: document.getElementById('nt-deadline').value,
+    prio:     document.getElementById('nt-prio').value,
+    status:   'work', tags: [],
+  };
+  tasks.unshift(newTask);
+  extras[id] = {
+    desc: document.getElementById('nt-desc').value,
+    checklist: [{id:1,text:'Первый шаг',done:false}],
+    comments: [], history: [{text:'Задача создана',time:nowStr()}],
+    scores: {impact:i,finance:f,urgency:u,complexity:c}, nextCI: 2,
+  };
+  ['nt-name','nt-desc'].forEach(x => document.getElementById(x).value='');
+  document.getElementById('nt-deadline').value='';
+  closeModal('task');
+  toast(`✓ Задача «${name.slice(0,25)}» создана`);
+  filterWho=''; filterSector=''; filterStatus='';
+  renderTasks();
+  renderDashboard();
+  // Save to Airtable in background
+  await createTaskInAT(newTask);
+}
+
+// Override setPanelStatus to also update Airtable
+const _origSetPanelStatus = setPanelStatus;
+function setPanelStatus(st) {
+  const t = tasks.find(x=>x.id===activePanelId); if(!t) return;
+  extras[t.id].history.push({text:`Статус → ${STATUS_LBL[st]}`,time:nowStr()});
+  t.status = st; if(st==='done') t.overdue=false;
+  openPanel(t.id);
+  toast('Статус: ' + STATUS_LBL[st]);
+  updateTaskInAT(t);
+}
+
+// Override saveField to also update Airtable
+const _origSaveField = saveField;
+function saveField(field, val) {
+  const t = tasks.find(x=>x.id===activePanelId); if(!t) return;
+  const ex = extras[t.id];
+  if(field==='sector')   { t.sector=val;   ex.history.push({text:`Сектор → ${val}`,time:nowStr()}); }
+  if(field==='who')      { t.who=val;       ex.history.push({text:`Ответственный → ${val}`,time:nowStr()}); }
+  if(field==='deadline') { t.deadline=val;  ex.history.push({text:`Дедлайн → ${fmtDate(val)}`,time:nowStr()}); }
+  if(field==='prio')     { t.prio=val;      ex.history.push({text:`Приоритет → ${val}`,time:nowStr()}); }
+  if(field==='desc')     { ex.desc=val; }
+  updateTaskInAT(t);
+}
+
+// Add refresh button to topbar
+const tbRight = document.querySelector('.tb-right');
+const refreshBtn = document.createElement('div');
+refreshBtn.className = 'tb-btn';
+refreshBtn.textContent = '🔄';
+refreshBtn.title = 'Обновить данные';
+refreshBtn.onclick = () => loadFromAirtable();
+tbRight.insertBefore(refreshBtn, tbRight.firstChild);
+
+// ═══════════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════════
+document.querySelectorAll('.page').forEach(p => { p.style.display='none'; p.classList.remove('active'); });
+document.getElementById('tab-dashboard').style.display='block';
+document.getElementById('tab-dashboard').classList.add('active');
+document.getElementById('nav-dashboard').classList.add('active');
+
+// Load from Airtable on start
+loadFromAirtable();
+</script>
+</body>
+</html>
