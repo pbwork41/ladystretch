@@ -535,6 +535,19 @@ html,body{height:100%;overflow:hidden;font-family:'Geologica',sans-serif;backgro
       <div id="team-list" style="margin-bottom:18px"></div>
       <div class="sec-head"><div class="sec-title">🏋️ Продукт</div></div>
       <div id="prog-list"></div>
+
+      <!-- TG CONNECT -->
+      <div style="margin-top:20px">
+        <div class="sec-head"><div class="sec-title">🔔 Telegram уведомления</div></div>
+        <div class="alert-card" id="tg-connect-card">
+          <div id="tg-connect-status"></div>
+          <button class="btn btn-ghost btn-full btn-sm" style="margin-top:10px" onclick="connectTelegram()">Подключить мой Telegram</button>
+          <div style="font-size:11px;color:var(--muted);margin-top:8px;text-align:center;font-weight:300;line-height:1.5">
+            1. Напишите боту <b style="color:var(--gold2)">@LadyStretchApp_bot</b> команду /start<br>
+            2. Вернитесь сюда и нажмите «Подключить»
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- ALERTS -->
@@ -801,6 +814,70 @@ async function deleteTaskInAT(atId){
 }
 
 // ═══════════════════════════════════════════════════════
+// TELEGRAM BOT
+// ═══════════════════════════════════════════════════════
+const TG_TOKEN = '8208003611:AAFsyBAdLSl9zwoS5G5zIQeYDgtZWidDr4s';
+const TG_URL   = `https://api.telegram.org/bot${TG_TOKEN}`;
+
+// Telegram ID сотрудников — каждый должен написать /start боту
+// После этого ID появится в getUpdates и нужно внести сюда
+let TG_IDS = JSON.parse(localStorage.getItem('ls_tg_ids')||'{}');
+// Формат: {'Павел': '123456789', 'Анна': '987654321', ...}
+
+async function sendTgNotif(toName, text){
+  const chatId = TG_IDS[toName];
+  if(!chatId){ console.log('TG ID не найден для', toName); return; }
+  try{
+    await fetch(`${TG_URL}/sendMessage`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        chat_id: chatId,
+        text: text,
+        parse_mode: 'HTML'
+      })
+    });
+    console.log('✓ TG уведомление отправлено →', toName);
+  }catch(e){ console.error('TG sendMessage error:', e); }
+}
+
+// Проверить и зарегистрировать Telegram ID текущего пользователя
+async function registerTgId(){
+  if(!currentUser) return;
+  if(TG_IDS[currentUser.name]) return; // уже зарегистрирован
+  try{
+    const res = await fetch(`${TG_URL}/getUpdates?limit=50&timeout=0`);
+    const data = await res.json();
+    if(!data.ok) return;
+    data.result.forEach(upd => {
+      const msg = upd.message;
+      if(!msg || !msg.text) return;
+      if(msg.text.startsWith('/start')){
+        const from = msg.from;
+        TG_IDS[currentUser.name] = String(from.id);
+        localStorage.setItem('ls_tg_ids', JSON.stringify(TG_IDS));
+        // Отвечаем приветственным сообщением с кнопкой
+        fetch(`${TG_URL}/sendMessage`, {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({
+            chat_id: from.id,
+            text: `🌸 <b>Добро пожаловать, ${currentUser.name}!</b>\n\nВы подключены к системе управления задачами Lady Stretch.\n\nТеперь вы будете получать уведомления о новых задачах прямо здесь.`,
+            parse_mode: 'HTML',
+            reply_markup: {
+              inline_keyboard:[[{
+                text: '🌸 Открыть приложение',
+                web_app: {url: 'https://pbwork41.github.io/ladystretch/'}
+              }]]
+            }
+          })
+        });
+        toast(`✓ Telegram подключён!`);
+      }
+    });
+  }catch(e){ console.error('registerTgId error:', e); }
+}
+
+// ═══════════════════════════════════════════════════════
 // USERS / ROLES
 // ═══════════════════════════════════════════════════════
 const USERS = [
@@ -1038,6 +1115,8 @@ function login(u){
   // Дефолтный режим
   taskMode = 'mine';
   loadFromAirtable();
+  // Пытаемся зарегистрировать TG ID текущего пользователя
+  setTimeout(registerTgId, 2000);
 }
 
 function logout(){
@@ -1242,6 +1321,63 @@ function ideaToTask(id){
 // ═══════════════════════════════════════════════════════
 const programs=[{name:'Растяжка базовая',desc:'Для новичков',load:88,color:'var(--teal)',status:'Активна'},{name:'Растяжка Pro',desc:'Продвинутый',load:75,color:'var(--blue)',status:'Активна'},{name:'Йога + Стретч',desc:'Комбо формат',load:82,color:'var(--pink)',status:'Активна'},{name:'Пилатес',desc:'Укрепление кора',load:60,color:'var(--blue)',status:'Активна'},{name:'Массаж',desc:'Индивидуально',load:100,color:'var(--green)',status:'Активна'},{name:'Ретрит-день',desc:'Выходной формат',load:50,color:'var(--gold)',status:'В разработке'}];
 
+function renderTgStatus(){
+  const el = document.getElementById('tg-connect-status');
+  if(!el || !currentUser) return;
+  const id = TG_IDS[currentUser.name];
+  if(id){
+    el.innerHTML = `<div style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--green)">✅ Telegram подключён · ID: ${id}</div>`;
+  } else {
+    el.innerHTML = `<div style="font-size:13px;color:var(--muted)">❌ Telegram не подключён</div>`;
+  }
+}
+
+async function connectTelegram(){
+  if(!currentUser) return;
+  toast('Ищем ваш Telegram...');
+  try{
+    const res = await fetch(`${TG_URL}/getUpdates?limit=100&timeout=0`);
+    const data = await res.json();
+    if(!data.ok){ toast('⚠️ Ошибка бота'); return; }
+    // Ищем любое сообщение от пользователя
+    let found = false;
+    data.result.forEach(upd => {
+      if(found) return;
+      const msg = upd.message;
+      if(!msg) return;
+      const from = msg.from;
+      const fname = ((from.first_name||'')+' '+(from.last_name||'')).trim();
+      // Сохраняем последнего написавшего — он должен быть текущим пользователем
+      if(msg.text){
+        TG_IDS[currentUser.name] = String(from.id);
+        localStorage.setItem('ls_tg_ids', JSON.stringify(TG_IDS));
+        found = true;
+        // Отправляем подтверждение
+        // Отправляем красивое приветственное сообщение с кнопкой открытия приложения
+        fetch(`${TG_URL}/sendMessage`, {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({
+            chat_id: TG_IDS[currentUser.name],
+            text: `🌸 <b>Добро пожаловать, ${currentUser.name}!</b>\n\nВы успешно подключили Telegram уведомления.\n\nТеперь вы будете получать уведомления о новых задачах прямо здесь.`,
+            parse_mode: 'HTML',
+            reply_markup: {
+              inline_keyboard:[[{
+                text: '🌸 Открыть Lady Stretch',
+                web_app: {url: 'https://pbwork41.github.io/ladystretch/'}
+              }]]
+            }
+          })
+        });
+        toast(`✅ Telegram подключён для ${currentUser.name}!`);
+        renderTgStatus();
+      }
+    });
+    if(!found) toast('Напишите /start боту @LadyStretchApp_bot и попробуйте снова');
+  }catch(e){
+    toast('⚠️ Ошибка соединения');
+  }
+}
+
 function renderMore(){
   // Team
   const tel=document.getElementById('team-list');
@@ -1257,6 +1393,7 @@ function renderMore(){
     </div>`;
   }).join('');
   // Product
+  renderTgStatus();
   document.getElementById('prog-list').innerHTML=programs.map(p=>`<div class="prog-card"><div class="prog-bar-top" style="background:${p.color}"></div><div class="prog-body"><div class="prog-name">${p.name}</div><div class="prog-desc">${p.desc}</div><div style="display:flex;gap:8px;align-items:center"><span class="tag ${p.status==='Активна'?'t-green':'t-orange'}">${p.status}</span><span style="font-size:11px;color:var(--muted)">${p.load}% заполн.</span></div><div class="load-bar"><div class="load-fill" style="width:${p.load}%;background:${p.load>=90?'var(--red)':p.load>=70?'var(--orange)':'var(--green)'}"></div></div></div></div>`).join('');
 }
 
@@ -1350,6 +1487,9 @@ function setPanelStatus(st){
   // Notify managers when task done
   if(st==='done'&&currentUser&&!currentUser.isManager){
     addNotif(`✅ ${t.name.slice(0,30)} — выполнено`,`${currentUser.name} завершил задачу · ${nowStr()}`,'✅','t-green');
+    // TG уведомление руководителям
+    const msg = `✅ <b>Задача выполнена</b>\n\n<b>${t.name}</b>\n\nВыполнил: ${currentUser.name}\nСектор: ${t.sector}`;
+    USERS.filter(u=>u.isManager).forEach(m => sendTgNotif(m.name, msg));
   }
 }
 
@@ -1402,6 +1542,9 @@ function delegateTo(name){
   updateTaskInAT(t);
   addNotif(`👤 Задача делегирована: ${t.name.slice(0,28)}`,`${currentUser?.name} → ${name} · ${nowStr()}`,'👤','t-purple');
   toast(`Делегировано → ${name}`);
+  // TG уведомление тому кому делегировали
+  const delMsg = `👤 <b>Задача делегирована вам</b>\n\n<b>${t.name}</b>\n\nОт: ${currentUser?.name}\nСектор: ${t.sector}`;
+  sendTgNotif(name, delMsg);
 }
 
 // DELETE
@@ -1507,6 +1650,11 @@ async function createTask(){
   filterSector='';filterStatus='';tasks._whoFilter='';
   renderTasks();renderDashboard();
   await createTaskInAT(newTask);
+  // Отправляем уведомление в Telegram исполнителю
+  if(whoVal !== currentUser?.name){
+    const msg = `📋 <b>Новая задача</b>\n\n<b>${name}</b>\n\nСектор: ${newTask.sector}\nОт: ${currentUser?.name||'Руководитель'}\nДедлайн: ${newTask.deadline ? fmtDate(newTask.deadline) : 'не указан'}\nПриоритет: ${newTask.prio==='high'?'🔴 Высокий':newTask.prio==='mid'?'🟡 Средний':'🟢 Низкий'}`;
+    sendTgNotif(whoVal, msg);
+  }
 }
 
 function createIdea(){
