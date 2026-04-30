@@ -474,10 +474,10 @@ html,body{height:100%;overflow:hidden;font-family:'Geologica',sans-serif;backgro
         <div class="focus-items" id="focus-items"></div>
       </div>
       <div class="metrics-row">
-        <div class="metric-card mc-gold"><div class="mc-icon">📋</div><div class="mc-label">Всего задач</div><div class="mc-val" id="m-total">—</div><div class="mc-sub" id="m-total-sub"></div></div>
-        <div class="metric-card mc-green"><div class="mc-icon">✅</div><div class="mc-label">Выполнено</div><div class="mc-val" id="m-done">—</div><div class="mc-sub" id="m-done-sub"></div></div>
+        <div class="metric-card mc-gold"><div class="mc-icon"></div><div class="mc-label">Всего задач</div><div class="mc-val" id="m-total">—</div><div class="mc-sub" id="m-total-sub"></div></div>
+        <div class="metric-card mc-green"><div class="mc-icon"></div><div class="mc-label">Выполнено</div><div class="mc-val" id="m-done">—</div><div class="mc-sub" id="m-done-sub"></div></div>
         <div class="metric-card mc-blue"><div class="mc-icon">⚡</div><div class="mc-label">В работе</div><div class="mc-val" id="m-work">—</div><div class="mc-sub" id="m-work-sub"></div></div>
-        <div class="metric-card mc-red"><div class="mc-icon">⚠️</div><div class="mc-label">Просрочено</div><div class="mc-val" id="m-over">—</div><div class="mc-sub">Требуют внимания</div></div>
+        <div class="metric-card mc-red"><div class="mc-icon"></div><div class="mc-label">Просрочено</div><div class="mc-val" id="m-over">—</div><div class="mc-sub">Требуют внимания</div></div>
       </div>
       <div class="alert-card" style="margin-bottom:10px">
         <div class="alert-card-head"><div class="alert-dot" style="background:var(--gold)"></div><div class="alert-card-title">По секторам</div></div>
@@ -533,8 +533,7 @@ html,body{height:100%;overflow:hidden;font-family:'Geologica',sans-serif;backgro
     <div class="page" id="tab-more">
       <div class="sec-head"><div class="sec-title">👥 Команда</div></div>
       <div id="team-list" style="margin-bottom:18px"></div>
-      <div class="sec-head"><div class="sec-title">🏋️ Продукт</div></div>
-      <div id="prog-list"></div>
+
 
       <!-- TG CONNECT -->
       <div style="margin-top:20px">
@@ -554,6 +553,19 @@ html,body{height:100%;overflow:hidden;font-family:'Geologica',sans-serif;backgro
     <div class="page" id="tab-alerts">
       <div class="sec-head"><div class="sec-title">🔔 Уведомления</div><button class="btn btn-ghost btn-sm sec-ml" onclick="clearNotifs()">Очистить</button></div>
       <div id="notif-list"></div>
+    </div>
+
+    <!-- NPS PAGE -->
+    <div class="page" id="tab-nps">
+      <div style="padding:16px">
+        <div class="sec-head">
+          <div class="sec-title">⭐ NPS Аналитика</div>
+          <button class="btn btn-ghost btn-sm sec-ml" onclick="loadNPS()">🔄</button>
+        </div>
+        <div id="nps-content">
+          <div class="empty"><div class="empty-icon" style="font-size:36px;opacity:.4">⭐</div><div class="empty-text">Нажмите 🔄 для загрузки</div></div>
+        </div>
+      </div>
     </div>
 
   </div>
@@ -585,12 +597,11 @@ html,body{height:100%;overflow:hidden;font-family:'Geologica',sans-serif;backgro
       </div>
       <div>Команда</div>
     </div>
-    <div class="nav-tab" id="nav-alerts" onclick="goTab('alerts')">
-      <div class="nav-icon-wrap" id="nw-alerts">
-        <svg viewBox="0 0 24 24" class="nav-svg"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+    <div class="nav-tab" id="nav-nps" onclick="goTab('nps')">
+      <div class="nav-icon-wrap" id="nw-nps">
+        <svg viewBox="0 0 24 24" class="nav-svg"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
       </div>
-      <div>Сигналы</div>
-      <div class="nav-badge" id="notif-badge" style="display:none"></div>
+      <div>NPS</div>
     </div>
   </nav>
 </div>
@@ -614,7 +625,7 @@ html,body{height:100%;overflow:hidden;font-family:'Geologica',sans-serif;backgro
     <!-- DELEGATE (только для руководителей) -->
     <div class="pf-group" id="delegate-section">
       <div class="pf-label">Делегировать</div>
-      <button class="btn-delegate btn-full" onclick="showDelegate()">👤 Делегировать задачу сотруднику</button>
+      <button class="btn-delegate btn-full" onclick="showDelegate()">Делегировать задачу сотруднику</button>
       <div id="delegate-list" style="display:none;margin-top:10px"></div>
     </div>
 
@@ -625,7 +636,7 @@ html,body{height:100%;overflow:hidden;font-family:'Geologica',sans-serif;backgro
       <div class="score-row"><span class="score-lbl">💰 Финансы</span><input type="range" class="score-sl" id="ps-finance" min="1" max="5" oninput="onScoreChange()"><span class="score-num" id="psv-finance">3</span></div>
       <div class="score-row"><span class="score-lbl">⚡ Срочность</span><input type="range" class="score-sl" id="ps-urgency" min="1" max="5" oninput="onScoreChange()"><span class="score-num" id="psv-urgency">3</span></div>
       <div class="score-row"><span class="score-lbl">🔧 Сложность</span><input type="range" class="score-sl" id="ps-complexity" min="1" max="5" oninput="onScoreChange()"><span class="score-num" id="psv-complexity">3</span></div>
-      <div class="score-result"><span class="score-badge" id="ps-badge">📋 Обычная</span><span style="font-size:11px;color:var(--muted)" id="ps-score-lbl"></span></div>
+      <div class="score-result"><span class="score-badge" id="ps-badge">Обычная</span><span style="font-size:11px;color:var(--muted)" id="ps-score-lbl"></span></div>
     </div>
 
     <!-- CHECKLIST -->
@@ -699,7 +710,7 @@ html,body{height:100%;overflow:hidden;font-family:'Geologica',sans-serif;backgro
       <div class="score-row"><span class="score-lbl">💰 Финансы</span><input type="range" class="score-sl" id="ns-finance" min="1" max="5" value="3" oninput="calcScore()"><span class="score-num" id="nsv-f">3</span></div>
       <div class="score-row"><span class="score-lbl">⚡ Срочность</span><input type="range" class="score-sl" id="ns-urgency" min="1" max="5" value="3" oninput="calcScore()"><span class="score-num" id="nsv-u">3</span></div>
       <div class="score-row"><span class="score-lbl">🔧 Сложность</span><input type="range" class="score-sl" id="ns-complexity" min="1" max="5" value="3" oninput="calcScore()"><span class="score-num" id="nsv-c">3</span></div>
-      <div class="score-result"><span class="score-badge" id="ns-badge">📋 Обычная</span><span style="font-size:11px;color:var(--muted)" id="ns-lbl"></span><span style="font-size:10px;color:var(--muted);margin-left:auto" id="ns-prio-hint"></span></div>
+      <div class="score-result"><span class="score-badge" id="ns-badge">Обычная</span><span style="font-size:11px;color:var(--muted)" id="ns-lbl"></span><span style="font-size:10px;color:var(--muted);margin-left:auto" id="ns-prio-hint"></span></div>
     </div>
   </div>
   <div class="modal-foot">
@@ -738,7 +749,169 @@ const tg = window.Telegram?.WebApp;
 if(tg){tg.ready();tg.expand();tg.setHeaderColor('#0d0e12');tg.setBackgroundColor('#0d0e12');}
 
 // ═══════════════════════════════════════════════════════
-// AIRTABLE
+// NPS ANALYTICS
+// ═══════════════════════════════════════════════════════
+const NPS_CSV_URL = 'https://docs.google.com/spreadsheets/d/1AMpZuOVZchhDgmYRwgZFVSzZ5Am00ZMXxJjgVCxtzcQ/export?format=csv&gid=2089332442';
+
+function parseCSVRow(row){
+  const result=[];let cur='';let inQ=false;
+  for(let i=0;i<row.length;i++){
+    const c=row[i];
+    if(c==='"'){inQ=!inQ;}
+    else if(c===','&&!inQ){result.push(cur.trim());cur='';}
+    else{cur+=c;}
+  }
+  result.push(cur.trim());
+  return result;
+}
+
+async function loadNPS(){
+  const el = document.getElementById('nps-content');
+  if(el) el.innerHTML = '<div class="empty"><div style="font-size:28px;opacity:.4;margin-bottom:8px">⭐</div><div class="empty-text">Загружаем данные...</div></div>';
+  try{
+    const res = await fetch(NPS_CSV_URL, {mode:'cors', credentials:'omit'});
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    const csv = await res.text();
+    if(!csv || csv.length < 50) throw new Error('Пустой ответ');
+    renderNPS(csv);
+  }catch(e){
+    console.error('loadNPS error:', e);
+    if(el) el.innerHTML = `<div class="empty"><div style="font-size:28px;opacity:.4;margin-bottom:8px"></div><div class="empty-text">Не удалось загрузить данные<br><span style="font-size:11px;color:var(--muted2)">${e.message}</span></div><button class="btn btn-ghost btn-sm" style="margin-top:16px" onclick="loadNPS()">Попробовать снова</button></div>`;
+  }
+}
+
+function renderNPS(csv){
+  const el = document.getElementById('nps-content');
+  if(!el) return;
+
+  const rows = csv.split('\n');
+  const dataRows = rows.slice(1).filter(r => {
+    const cols = parseCSVRow(r);
+    return cols[0] && (cols[0].includes('.') || cols[0].includes('/'));
+  });
+
+  let promoters=0, neutrals=0, detractors=0;
+  const goodTexts=[], badTexts=[];
+
+  dataRows.forEach(r=>{
+    const cols = parseCSVRow(r);
+    const score = parseInt(cols[3]);
+    const good = cols[4]?.replace(/"/g,'').trim();
+    const bad  = cols[5]?.replace(/"/g,'').trim();
+    if(!isNaN(score)){
+      if(score>=9) promoters++;
+      else if(score>=7) neutrals++;
+      else if(score>=0) detractors++;
+    }
+    if(good && good.length>3 && !good.match(/^[\d\s%.,]+$/) && good!=='-') goodTexts.push(good);
+    if(bad  && bad.length>3  && !bad.match(/^[\d\s%.,]+$/)  && bad!=='-'  && bad.toLowerCase()!=='нет' && bad.toLowerCase()!=='всё устраивает' && bad.toLowerCase()!=='все устраивает') badTexts.push(bad);
+  });
+
+  const total = promoters + neutrals + detractors;
+  const nps = total > 0 ? Math.round(((promoters - detractors) / total) * 100) : 0;
+  const npsColor = nps >= 70 ? 'var(--green)' : nps >= 30 ? 'var(--amber)' : 'var(--red)';
+
+  // Keyword frequency for good/bad
+  function topKeywords(texts, n=5){
+    const freq={};
+    const stopWords = new Set(['что','как','все','это','для','не','на','в','и','с','у','а','но','по','из','за','от','до','так','уже','бы','же','чтобы','нет','да','очень','мне','ну','то','просто','всё','ещё','более','можно','был','была','есть','при','или','со','который']);
+    texts.forEach(t=>{
+      t.toLowerCase().replace(/[^а-яё\s]/gi,'').split(/\s+/).forEach(w=>{
+        if(w.length>3 && !stopWords.has(w)){ freq[w]=(freq[w]||0)+1; }
+      });
+    });
+    return Object.entries(freq).sort((a,b)=>b[1]-a[1]).slice(0,n);
+  }
+
+  const topGood = topKeywords(goodTexts);
+  const topBad  = topKeywords(badTexts);
+
+  // Check for new neutrals/detractors and send TG notifications
+  const prevNPS = parseInt(localStorage.getItem('ls_prev_nps')||'100');
+  const prevDet = parseInt(localStorage.getItem('ls_prev_det')||'0');
+  const prevNeu = parseInt(localStorage.getItem('ls_prev_neu')||'0');
+  if(detractors > prevDet || neutrals > prevNeu){
+    const newDet = detractors - prevDet;
+    const newNeu = neutrals - prevNeu;
+    let alertMsg = '';
+    if(newDet > 0) alertMsg += `<b>Новый детрактор в NPS!</b>\n\nNPS снизился. Новых детракторов: +${newDet}\nТекущий NPS: ${nps}`;
+    if(newNeu > 0) alertMsg += `${alertMsg?'\n\n':''}<b>Новый нейтрал в NPS!</b>\n\nНовых нейтралов: +${newNeu}\nТекущий NPS: ${nps}`;
+    if(alertMsg){
+      // Notify all users
+      USERS.forEach(u => sendTgNotif(u.name, alertMsg));
+      addNotif('Изменение NPS — новый детрактор/нейтрал', `NPS: ${nps} · Детракторы: ${detractors} · Нейтралы: ${neutrals}`, '', 't-orange');
+      toast('Уведомление о NPS отправлено команде');
+    }
+  }
+  localStorage.setItem('ls_prev_nps', nps);
+  localStorage.setItem('ls_prev_det', detractors);
+  localStorage.setItem('ls_prev_neu', neutrals);
+
+  el.innerHTML = `
+    <!-- NPS SCORE -->
+    <div class="alert-card" style="margin-bottom:12px;text-align:center">
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);margin-bottom:12px;font-weight:500">Индекс лояльности</div>
+      <div style="font-family:'Playfair Display',serif;font-size:72px;font-weight:700;color:${npsColor};line-height:1;margin-bottom:6px">${nps}</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:16px">${total} ответов</div>
+      <div style="display:flex;gap:0;border-radius:10px;overflow:hidden;height:8px;margin-bottom:12px">
+        <div style="background:var(--green);flex:${promoters}"></div>
+        <div style="background:var(--amber);flex:${neutrals}"></div>
+        <div style="background:var(--red);flex:${detractors}"></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+        <div style="background:rgba(106,170,136,.12);border:1px solid rgba(106,170,136,.2);border-radius:10px;padding:10px">
+          <div style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--green)">${promoters}</div>
+          <div style="font-size:9.5px;color:var(--muted);margin-top:2px;text-transform:uppercase;letter-spacing:.5px">Промоутеры</div>
+          <div style="font-size:10px;color:var(--green);margin-top:2px">${Math.round(promoters/total*100)}%</div>
+        </div>
+        <div style="background:rgba(200,144,96,.12);border:1px solid rgba(200,144,96,.2);border-radius:10px;padding:10px">
+          <div style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--amber)">${neutrals}</div>
+          <div style="font-size:9.5px;color:var(--muted);margin-top:2px;text-transform:uppercase;letter-spacing:.5px">Нейтралы</div>
+          <div style="font-size:10px;color:var(--amber);margin-top:2px">${Math.round(neutrals/total*100)}%</div>
+        </div>
+        <div style="background:rgba(184,96,112,.12);border:1px solid rgba(184,96,112,.2);border-radius:10px;padding:10px">
+          <div style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--red)">${detractors}</div>
+          <div style="font-size:9.5px;color:var(--muted);margin-top:2px;text-transform:uppercase;letter-spacing:.5px">Детракторы</div>
+          <div style="font-size:10px;color:var(--red);margin-top:2px">${Math.round(detractors/total*100)}%</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WHAT THEY LIKE -->
+    <div class="alert-card" style="margin-bottom:12px">
+      <div class="alert-card-head">
+        <div class="alert-dot" style="background:var(--green);box-shadow:0 0 6px var(--green)"></div>
+        <div class="alert-card-title">👍 Что отмечают хорошо</div>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:7px">
+        ${topGood.map(([w,c])=>`<div style="background:rgba(106,170,136,.12);border:1px solid rgba(106,170,136,.22);border-radius:20px;padding:5px 12px;font-size:12px;color:var(--green);display:flex;align-items:center;gap:5px"><span>${w}</span><span style="font-size:10px;opacity:.7">${c}</span></div>`).join('')}
+      </div>
+      <div style="margin-top:12px;display:flex;flex-direction:column;gap:5px">
+        ${goodTexts.slice(0,5).map(t=>`<div style="font-size:12px;color:var(--muted);padding:6px 10px;background:rgba(255,255,255,.03);border-radius:8px;font-weight:300;line-height:1.4">"${t}"</div>`).join('')}
+      </div>
+    </div>
+
+    <!-- WHAT TO IMPROVE -->
+    <div class="alert-card" style="margin-bottom:12px">
+      <div class="alert-card-head">
+        <div class="alert-dot" style="background:var(--rose);box-shadow:0 0 6px var(--rose)"></div>
+        <div class="alert-card-title">📈 Что можно улучшить</div>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:7px">
+        ${topBad.map(([w,c])=>`<div style="background:rgba(196,118,142,.12);border:1px solid rgba(196,118,142,.22);border-radius:20px;padding:5px 12px;font-size:12px;color:var(--rose);display:flex;align-items:center;gap:5px"><span>${w}</span><span style="font-size:10px;opacity:.7">${c}</span></div>`).join('')}
+      </div>
+      <div style="margin-top:12px;display:flex;flex-direction:column;gap:5px">
+        ${badTexts.slice(0,5).map(t=>`<div style="font-size:12px;color:var(--muted);padding:6px 10px;background:rgba(255,255,255,.03);border-radius:8px;font-weight:300;line-height:1.4">"${t}"</div>`).join('')}
+      </div>
+    </div>
+
+    <div style="text-align:center;font-size:10px;color:var(--muted2);padding:8px;font-weight:300">
+      Данные из Google Sheets · обновляются при каждой загрузке
+    </div>
+  `;
+}
+
+
 // ═══════════════════════════════════════════════════════
 const AT_TOKEN = 'patG3yslkypoM0194.2bd0f8803abcbf4f80dc97d387651bf52b8da06d9b21d38f90db4f859ca09e73';
 const AT_BASE  = 'appJY4FEpkcBlsdG0';
@@ -780,7 +953,7 @@ async function loadFromAirtable(){
       tasks.forEach(t=>{if(!extras[t.id])extras[t.id]={desc:'',checklist:[],comments:[],history:[{text:'Задача загружена',time:nowStr()}],scores:{impact:3,finance:3,urgency:3,complexity:3},nextCI:1};});
       toast(`✓ Загружено ${tasks.length} задач`);
     }
-  }catch(e){toast('⚠️ Работаем офлайн');}
+  }catch(e){toast('Работаем офлайн');}
   hideLoader();
   renderCurrentTab();
 }
@@ -795,9 +968,9 @@ async function createTaskInAT(task){
       console.log('✓ Airtable: задача сохранена', task.name);
     } else if(data.error){
       console.error('Airtable error:', data.error.type, data.error.message);
-      toast('⚠️ Ошибка: '+data.error.message);
+      toast('Ошибка: '+data.error.message);
     }
-  }catch(e){ console.error('createTaskInAT:', e); toast('⚠️ Нет связи с базой'); }
+  }catch(e){ console.error('createTaskInAT:', e); toast('Нет связи с базой'); }
 }
 async function updateTaskInAT(task){
   if(!task.atId)return;
@@ -861,17 +1034,17 @@ async function registerTgId(){
           method:'POST', headers:{'Content-Type':'application/json'},
           body: JSON.stringify({
             chat_id: from.id,
-            text: `🌸 <b>Добро пожаловать, ${currentUser.name}!</b>\n\nВы подключены к системе управления задачами Lady Stretch.\n\nТеперь вы будете получать уведомления о новых задачах прямо здесь.`,
+            text: `<b>Добро пожаловать, ${currentUser.name}!</b>\n\nВы подключены к системе управления задачами Lady Stretch.\n\nТеперь вы будете получать уведомления о новых задачах прямо здесь.`,
             parse_mode: 'HTML',
             reply_markup: {
               inline_keyboard:[[{
-                text: '🌸 Открыть приложение',
+                text: 'Открыть приложение',
                 web_app: {url: 'https://pbwork41.github.io/ladystretch/'}
               }]]
             }
           })
         });
-        toast(`✓ Telegram подключён!`);
+        toast(`Telegram подключён`);
       }
     });
   }catch(e){ console.error('registerTgId error:', e); }
@@ -925,7 +1098,7 @@ function fmtDate(d){if(!d)return'—';const dt=new Date(d+'T00:00:00');return dt
 function dlCls(d,st){if(st==='done')return'ok';const n=new Date(),dt=new Date(d+'T00:00:00');if(dt<n)return'ov';if(dt-n<3*86400000)return'soon';return'ok';}
 function nowStr(){const d=new Date();return`${d.getDate()} апр, ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;}
 function toast(msg){document.querySelectorAll('.toast').forEach(t=>t.remove());const t=document.createElement('div');t.className='toast';t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),2500);}
-function scoreCalc(i,f,u,c){const s=(i*2+f*2+u)/Math.max(c,1);let label,color,prio;if(s>=6&&u>=4){label='🔥 Срочная и важная';color='var(--red)';prio='high';}else if(s>=5&&c<=2){label='⚡ Быстрая победа';color='var(--green)';prio='mid';}else if(s>=5){label='💎 Высокий эффект';color='var(--blue)';prio='high';}else if(s<3){label='⏸ Можно отложить';color='var(--muted)';prio='low';}else{label='📋 Обычная задача';color='var(--orange)';prio='mid';}return{s,label,color,prio};}
+function scoreCalc(i,f,u,c){const s=(i*2+f*2+u)/Math.max(c,1);let label,color,prio;if(s>=6&&u>=4){label='🔥 Срочная и важная';color='var(--red)';prio='high';}else if(s>=5&&c<=2){label='⚡ Быстрая победа';color='var(--green)';prio='mid';}else if(s>=5){label='💎 Высокий эффект';color='var(--blue)';prio='high';}else if(s<3){label='⏸ Можно отложить';color='var(--muted)';prio='low';}else{label='Обычная задача';color='var(--orange)';prio='mid';}return{s,label,color,prio};}
 
 // Visibility: what can current user see?
 function canSeeTask(t){
@@ -1132,7 +1305,7 @@ function logout(){
 // ═══════════════════════════════════════════════════════
 // NAVIGATION
 // ═══════════════════════════════════════════════════════
-const TAB_LABELS={dashboard:'Дашборд',tasks:'Задачи',kanban:'Канбан',ideas:'Идеи',more:'Команда',alerts:'Уведомления'};
+const TAB_LABELS={dashboard:'Дашборд',tasks:'Задачи',kanban:'Канбан',ideas:'Идеи',more:'Команда',alerts:'Уведомления',nps:'NPS Аналитика'};
 let activeTab='dashboard';
 
 function goTab(id){
@@ -1141,11 +1314,11 @@ function goTab(id){
   if(!pg)return;
   pg.style.display='block';pg.classList.add('active');
   document.getElementById('page-label').textContent=TAB_LABELS[id]||id;
-  ['dashboard','tasks','ideas','more','alerts'].forEach(t=>document.getElementById('nav-'+t)?.classList.remove('active'));
+  ['dashboard','tasks','ideas','more','alerts','nps'].forEach(t=>document.getElementById('nav-'+t)?.classList.remove('active'));
   document.getElementById('nav-'+id)?.classList.add('active');
   activeTab=id;
   document.getElementById('scroll-area').scrollTop=0;
-  const renders={dashboard:renderDashboard,tasks:renderTasks,kanban:renderKanban,ideas:renderIdeas,more:renderMore,alerts:renderAlerts};
+  const renders={dashboard:renderDashboard,tasks:renderTasks,kanban:renderKanban,ideas:renderIdeas,more:renderMore,alerts:renderAlerts,nps:loadNPS};
   if(renders[id])renders[id]();
 }
 
@@ -1179,7 +1352,7 @@ function renderDashboard(){
   const ob=document.getElementById('overdue-badge');
   if(over>0){ob.textContent=over;ob.style.display='block';}else ob.style.display='none';
   // Focus
-  const focus=visible.filter(t=>t.status==='work'&&!t.overdue).slice(0,3);
+  const focus=visible.filter(t=>t.status==='work'&&!t.overdue&&t.status!=='done').slice(0,3);
   document.getElementById('focus-items').innerHTML=focus.length?focus.map(t=>`<div class="focus-item"><div class="focus-check" onclick="this.classList.toggle('done');this.textContent=this.classList.contains('done')?'✓':''"></div><span>${t.name} <span style="color:var(--muted);font-size:10.5px">— ${t.who}</span></span></div>`).join(''):'<div style="font-size:12px;color:var(--green)">✓ Нет срочных задач</div>';
   // Circular sector progress donuts
   const sdw = document.getElementById('sectors-donut-wrap');
@@ -1249,7 +1422,6 @@ function renderTasks(){
   const el=document.getElementById('task-list');if(!el)return;
   const isManager=currentUser?.isManager;
   const whoF=tasks._whoFilter||'';
-  // Секторные чипы только в режиме "все" для руководителей
   const sc=document.getElementById('sector-chips');
   if(sc)sc.style.display=(isManager&&taskMode==='all')?'flex':'none';
   let list=tasks.filter(t=>{
@@ -1258,6 +1430,8 @@ function renderTasks(){
     } else {
       if(t.who!==currentUser.name)return false;
     }
+    // Выполненные задачи скрыты если не выбран фильтр "Выполнено"
+    if(t.status==='done'&&filterStatus!=='done')return false;
     if(filterSector&&t.sector!==filterSector)return false;
     if(filterStatus&&t.status!==filterStatus)return false;
     if(whoF&&t.who!==whoF)return false;
@@ -1326,7 +1500,7 @@ function renderTgStatus(){
   if(!el || !currentUser) return;
   const id = TG_IDS[currentUser.name];
   if(id){
-    el.innerHTML = `<div style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--green)">✅ Telegram подключён · ID: ${id}</div>`;
+    el.innerHTML = `<div style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--green)">Telegram подключён · ID: ${id}</div>`;
   } else {
     el.innerHTML = `<div style="font-size:13px;color:var(--muted)">❌ Telegram не подключён</div>`;
   }
@@ -1338,7 +1512,7 @@ async function connectTelegram(){
   try{
     const res = await fetch(`${TG_URL}/getUpdates?limit=100&timeout=0`);
     const data = await res.json();
-    if(!data.ok){ toast('⚠️ Ошибка бота'); return; }
+    if(!data.ok){ toast('Ошибка бота'); return; }
     // Ищем любое сообщение от пользователя
     let found = false;
     data.result.forEach(upd => {
@@ -1358,23 +1532,23 @@ async function connectTelegram(){
           method:'POST', headers:{'Content-Type':'application/json'},
           body: JSON.stringify({
             chat_id: TG_IDS[currentUser.name],
-            text: `🌸 <b>Добро пожаловать, ${currentUser.name}!</b>\n\nВы успешно подключили Telegram уведомления.\n\nТеперь вы будете получать уведомления о новых задачах прямо здесь.`,
+            text: `<b>Добро пожаловать, ${currentUser.name}!</b>\n\nВы успешно подключили Telegram уведомления.\n\nТеперь вы будете получать уведомления о новых задачах прямо здесь.`,
             parse_mode: 'HTML',
             reply_markup: {
               inline_keyboard:[[{
-                text: '🌸 Открыть Lady Stretch',
+                text: 'Открыть Lady Stretch',
                 web_app: {url: 'https://pbwork41.github.io/ladystretch/'}
               }]]
             }
           })
         });
-        toast(`✅ Telegram подключён для ${currentUser.name}!`);
+        toast(`Telegram подключён для ${currentUser.name}!`);
         renderTgStatus();
       }
     });
     if(!found) toast('Напишите /start боту @LadyStretchApp_bot и попробуйте снова');
   }catch(e){
-    toast('⚠️ Ошибка соединения');
+    toast('Ошибка соединения');
   }
 }
 
@@ -1393,8 +1567,7 @@ function renderMore(){
     </div>`;
   }).join('');
   // Product
-  renderTgStatus();
-  document.getElementById('prog-list').innerHTML=programs.map(p=>`<div class="prog-card"><div class="prog-bar-top" style="background:${p.color}"></div><div class="prog-body"><div class="prog-name">${p.name}</div><div class="prog-desc">${p.desc}</div><div style="display:flex;gap:8px;align-items:center"><span class="tag ${p.status==='Активна'?'t-green':'t-orange'}">${p.status}</span><span style="font-size:11px;color:var(--muted)">${p.load}% заполн.</span></div><div class="load-bar"><div class="load-fill" style="width:${p.load}%;background:${p.load>=90?'var(--red)':p.load>=70?'var(--orange)':'var(--green)'}"></div></div></div></div>`).join('');
+  renderTgStatus();(p=>`<div class="prog-card"><div class="prog-bar-top" style="background:${p.color}"></div><div class="prog-body"><div class="prog-name">${p.name}</div><div class="prog-desc">${p.desc}</div><div style="display:flex;gap:8px;align-items:center"><span class="tag ${p.status==='Активна'?'t-green':'t-orange'}">${p.status}</span><span style="font-size:11px;color:var(--muted)">${p.load}% заполн.</span></div><div class="load-bar"><div class="load-fill" style="width:${p.load}%;background:${p.load>=90?'var(--red)':p.load>=70?'var(--orange)':'var(--green)'}"></div></div></div></div>`).join('');
 }
 
 function filterByPerson(name){
@@ -1482,13 +1655,14 @@ function setPanelStatus(st){
   extras[t.id]?.history.push({text:`Статус → ${STATUS_LBL[st]}`,time:nowStr()});
   t.status=st;if(st==='done')t.overdue=false;
   openPanel(t.id);
-  toast('Статус: '+STATUS_LBL[st]);
+  if(st==='done') toast('✓ Задача выполнена — убрана в архив');
+  else toast('Статус: '+STATUS_LBL[st]);
   updateTaskInAT(t);
   // Notify managers when task done
   if(st==='done'&&currentUser&&!currentUser.isManager){
-    addNotif(`✅ ${t.name.slice(0,30)} — выполнено`,`${currentUser.name} завершил задачу · ${nowStr()}`,'✅','t-green');
+    addNotif(`${t.name.slice(0,30)} — выполнено`,`${currentUser.name} завершил задачу · ${nowStr()}`,'','t-green');
     // TG уведомление руководителям
-    const msg = `✅ <b>Задача выполнена</b>\n\n<b>${t.name}</b>\n\nВыполнил: ${currentUser.name}\nСектор: ${t.sector}`;
+    const msg = `<b>Задача выполнена</b>\n\n<b>${t.name}</b>\n\nВыполнил: ${currentUser.name}\nСектор: ${t.sector}`;
     USERS.filter(u=>u.isManager).forEach(m => sendTgNotif(m.name, msg));
   }
 }
@@ -1501,7 +1675,7 @@ function savePanelField(field,val){
   if(field==='who'){
     const oldWho=t.who;t.who=val;
     ex?.history.push({text:`Ответственный → ${val}`,time:nowStr()});
-    if(val!==oldWho){addNotif(`📋 Новая задача: ${t.name.slice(0,28)}`,`Назначена от ${currentUser?.name} · ${nowStr()}`,'📋','t-blue');}
+    if(val!==oldWho){addNotif(`Новая задача: ${t.name.slice(0,28)}`,`Назначена от ${currentUser?.name} · ${nowStr()}`,'','t-blue');}
   }
   if(field==='deadline'){t.deadline=val;ex?.history.push({text:`Дедлайн → ${fmtDate(val)}`,time:nowStr()});}
   if(field==='prio'){t.prio=val;ex?.history.push({text:`Приоритет → ${val}`,time:nowStr()});}
@@ -1540,10 +1714,10 @@ function delegateTo(name){
   document.getElementById('pf-who').value=name;
   delegateVisible=false;document.getElementById('delegate-list').style.display='none';
   updateTaskInAT(t);
-  addNotif(`👤 Задача делегирована: ${t.name.slice(0,28)}`,`${currentUser?.name} → ${name} · ${nowStr()}`,'👤','t-purple');
+  addNotif(`Задача делегирована: ${t.name.slice(0,28)}`,`${currentUser?.name} → ${name} · ${nowStr()}`,'','t-purple');
   toast(`Делегировано → ${name}`);
   // TG уведомление тому кому делегировали
-  const delMsg = `👤 <b>Задача делегирована вам</b>\n\n<b>${t.name}</b>\n\nОт: ${currentUser?.name}\nСектор: ${t.sector}`;
+  const delMsg = `<b>Задача делегирована вам</b>\n\n<b>${t.name}</b>\n\nОт: ${currentUser?.name}\nСектор: ${t.sector}`;
   sendTgNotif(name, delMsg);
 }
 
@@ -1641,7 +1815,7 @@ async function createTask(){
   extras[id]={desc:document.getElementById('nt-desc').value,checklist:[],comments:[],history:[{text:'Задача создана',time:nowStr()}],scores:{impact:i,finance:f,urgency:u,complexity:c},nextCI:1};
   // Notify if assigned to someone else
   if(whoVal!==currentUser?.name){
-    addNotif(`📋 Новая задача: ${name.slice(0,28)}`,`Назначена вам от ${currentUser?.name} · ${nowStr()}`,'📋','t-blue');
+    addNotif(`Новая задача: ${name.slice(0,28)}`,`Назначена вам от ${currentUser?.name} · ${nowStr()}`,'','t-blue');
   }
   ['nt-name','nt-desc'].forEach(x=>{const el=document.getElementById(x);if(el)el.value='';});
   const dl=document.getElementById('nt-deadline');if(dl)dl.value='';
@@ -1652,7 +1826,7 @@ async function createTask(){
   await createTaskInAT(newTask);
   // Отправляем уведомление в Telegram исполнителю
   if(whoVal !== currentUser?.name){
-    const msg = `📋 <b>Новая задача</b>\n\n<b>${name}</b>\n\nСектор: ${newTask.sector}\nОт: ${currentUser?.name||'Руководитель'}\nДедлайн: ${newTask.deadline ? fmtDate(newTask.deadline) : 'не указан'}\nПриоритет: ${newTask.prio==='high'?'🔴 Высокий':newTask.prio==='mid'?'🟡 Средний':'🟢 Низкий'}`;
+    const msg = `<b>Новая задача</b>\n\n<b>${name}</b>\n\nСектор: ${newTask.sector}\nОт: ${currentUser?.name||'Руководитель'}\nДедлайн: ${newTask.deadline ? fmtDate(newTask.deadline) : 'не указан'}\nПриоритет: ${newTask.prio==='high'?'🔴 Высокий':newTask.prio==='mid'?'🟡 Средний':'🟢 Низкий'}`;
     sendTgNotif(whoVal, msg);
   }
 }
