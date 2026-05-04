@@ -329,6 +329,19 @@ html,body{height:100%;overflow:hidden;font-family:'Geologica',sans-serif;backgro
 .notif-text{font-size:13px;font-weight:500;line-height:1.4;letter-spacing:.1px}
 .notif-sub{font-size:11px;color:var(--muted);margin-top:3px;font-weight:300}
 
+/* SWIPE */
+.task-wrap-swipe{position:relative;border-radius:var(--rs);overflow:hidden;margin-bottom:10px}
+.swipe-bg{position:absolute;inset:0;display:flex;align-items:center;border-radius:var(--rs)}
+.swipe-bg-done{background:var(--sage);justify-content:flex-start;padding-left:18px}
+.swipe-bg-hold{background:var(--amber);justify-content:flex-end;padding-right:18px}
+.swipe-bg-label{font-size:12px;font-weight:500;color:#fff;display:flex;align-items:center;gap:6px}
+.swipe-bg-label svg{width:15px;height:15px;fill:none;stroke:#fff;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.swipe-card{position:relative;transition:transform .05s;will-change:transform}
+.swipe-card.dragging{transition:none}
+.swipe-card.snap-done{transition:transform .24s cubic-bezier(.4,0,.2,1),opacity .24s;transform:translateX(-115%) !important;opacity:0}
+.swipe-card.snap-hold{transition:transform .24s cubic-bezier(.4,0,.2,1),opacity .24s;transform:translateX(115%) !important;opacity:0}
+.swipe-card.snap-back{transition:transform .28s cubic-bezier(.4,0,.2,1)}
+
 /* TASK MODE SWITCH */
 .mode-btn{flex:1;text-align:center;padding:7px 12px;border-radius:9px;font-size:12px;font-weight:500;cursor:pointer;color:var(--muted);transition:all .2s;letter-spacing:.2px}
 .mode-btn.active{background:linear-gradient(135deg,var(--violet),var(--rose));color:#fff;box-shadow:0 2px 12px rgba(139,104,200,.3)}
@@ -1289,6 +1302,68 @@ function completeFocusTask(taskId, el){
   }
 }
 
+function initSwipe(taskId){
+  const card = document.getElementById('swcard-'+taskId);
+  const wrap = document.getElementById('swwrap-'+taskId);
+  if(!card || !wrap) return;
+  let startX=0, startY=0, curX=0, dragging=false, moved=false;
+  const THRESHOLD = 70;
+
+  function start(e){
+    startX = e.touches ? e.touches[0].clientX : e.clientX;
+    startY = e.touches ? e.touches[0].clientY : e.clientY;
+    dragging=true; moved=false; curX=0;
+    card.classList.add('dragging');
+  }
+  function move(e){
+    if(!dragging) return;
+    const dx = (e.touches ? e.touches[0].clientX : e.clientX) - startX;
+    const dy = (e.touches ? e.touches[0].clientY : e.clientY) - startY;
+    // Если вертикальный скролл — отменяем свайп
+    if(!moved && Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > 6){ dragging=false; card.classList.remove('dragging'); card.style.transform=''; return; }
+    curX = dx;
+    if(Math.abs(curX) > 8) moved=true;
+    if(moved){ card.style.transform=`translateX(${curX}px)`; e.preventDefault(); }
+  }
+  function end(e){
+    if(!dragging) return;
+    dragging=false;
+    card.classList.remove('dragging');
+    if(!moved){
+      card.style.transform='';
+      openPanel(taskId);
+      curX=0; return;
+    }
+    if(curX < -THRESHOLD){
+      card.classList.add('snap-done');
+      setTimeout(()=>{
+        wrap.style.display='none';
+        const t=tasks.find(x=>x.id==taskId);
+        if(t){ t.status='done'; t._localStatus=true; t.overdue=false; window._lastLocalChange=Date.now(); tasks=tasks.filter(x=>x.id!=taskId); updateTaskInAT(t); toast('Задача выполнена — убрана в архив'); renderDashboard(); if(currentUser&&!currentUser.isManager){ const msg=`<b>Задача выполнена</b>\n\n<b>${t.name}</b>\n\nВыполнил: ${currentUser.name}`; USERS.filter(u=>u.isManager).forEach(m=>sendTgNotif(m.name,msg)); } }
+      }, 230);
+    } else if(curX > THRESHOLD){
+      card.classList.add('snap-hold');
+      setTimeout(()=>{
+        wrap.style.display='none';
+        const t=tasks.find(x=>x.id==taskId);
+        if(t){ t.status='hold'; t._localStatus=true; window._lastLocalChange=Date.now(); updateTaskInAT(t); toast('Задача отложена'); renderTasks(); renderDashboard(); }
+      }, 230);
+    } else {
+      card.classList.add('snap-back');
+      card.style.transform='';
+      setTimeout(()=>card.classList.remove('snap-back'), 280);
+    }
+    curX=0; moved=false;
+  }
+
+  card.addEventListener('mousedown', start);
+  card.addEventListener('touchstart', start, {passive:true});
+  window.addEventListener('mousemove', move);
+  card.addEventListener('touchmove', move, {passive:false});
+  window.addEventListener('mouseup', end);
+  card.addEventListener('touchend', end);
+}
+
 function filterBySectorStatus(st){
   filterSector=''; filterStatus=st==='overdue'?'':st;
   tasks._whoFilter=''; taskMode='all';
@@ -1334,21 +1409,31 @@ function renderTasks(){
   el.innerHTML=list.map(t=>{
     const dc=dlCls(t.deadline,t.status);
     const isMine=t.who===currentUser?.name;
-    return`<div class="task-card${t.overdue?' overdue':''}${isMine?' mine':''}" onclick="openPanel('${t.id}')">
-      <div class="tc-prio" style="background:${PRIO_COL[t.prio]}"></div>
-      <div class="tc-body">
-        <div class="tc-name">${t.name}</div>
-        <div class="tc-meta">
-          <span class="tag" style="background:${SC[t.sector]||'var(--muted)'}22;color:${SC[t.sector]||'var(--muted)'}">${t.sector.split('/')[0].trim()}</span>
-          <span class="tag" style="background:${STATUS_COL[t.status]}22;color:${STATUS_COL[t.status]}">${STATUS_LBL[t.status]}</span>
-          ${t.tags.slice(0,1).map(tg=>`<span class="tag t-muted">${tg}</span>`).join('')}
-          ${t.overdue?'<span class="tag t-red">!</span>':''}
-          ${isManager&&taskMode==='all'?`<span class="tc-who">${t.who}</span>`:''}
-          <span class="tc-dl ${dc}">${fmtDate(t.deadline)}</span>
+    return`<div class="task-wrap-swipe" id="swwrap-${t.id}">
+      <div class="swipe-bg swipe-bg-done">
+        <div class="swipe-bg-label"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Выполнено</div>
+      </div>
+      <div class="swipe-bg swipe-bg-hold">
+        <div class="swipe-bg-label">Отложить <svg viewBox="0 0 24 24"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg></div>
+      </div>
+      <div class="task-card swipe-card${t.overdue?' overdue':''}${isMine?' mine':''}" id="swcard-${t.id}">
+        <div class="tc-prio" style="background:${PRIO_COL[t.prio]}"></div>
+        <div class="tc-body">
+          <div class="tc-name">${t.name}</div>
+          <div class="tc-meta">
+            <span class="tag" style="background:${SC[t.sector]||'var(--muted)'}22;color:${SC[t.sector]||'var(--muted)'}">${t.sector.split('/')[0].trim()}</span>
+            <span class="tag" style="background:${STATUS_COL[t.status]}22;color:${STATUS_COL[t.status]}">${STATUS_LBL[t.status]}</span>
+            ${t.tags.slice(0,1).map(tg=>`<span class="tag t-muted">${tg}</span>`).join('')}
+            ${t.overdue?'<span class="tag t-red">!</span>':''}
+            ${isManager&&taskMode==='all'?`<span class="tc-who">${t.who}</span>`:''}
+            <span class="tc-dl ${dc}">${fmtDate(t.deadline)}</span>
+          </div>
         </div>
       </div>
     </div>`;
   }).join('');
+  // Инициализируем свайп для всех карточек
+  requestAnimationFrame(()=>{ list.forEach(t=>initSwipe(t.id)); });
 }
 
 // ═══════════════════════════════════════════════════════
