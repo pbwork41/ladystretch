@@ -476,7 +476,7 @@ html,body{height:100%;overflow:hidden;font-family:'Geologica',sans-serif;backgro
       <div class="metrics-row">
         <div class="metric-card mc-gold"><div class="mc-icon"></div><div class="mc-label">Всего задач</div><div class="mc-val" id="m-total">—</div><div class="mc-sub" id="m-total-sub"></div></div>
         <div class="metric-card mc-green"><div class="mc-icon"></div><div class="mc-label">Выполнено</div><div class="mc-val" id="m-done">—</div><div class="mc-sub" id="m-done-sub"></div></div>
-        <div class="metric-card mc-blue"><div class="mc-icon">⚡</div><div class="mc-label">В работе</div><div class="mc-val" id="m-work">—</div><div class="mc-sub" id="m-work-sub"></div></div>
+        <div class="metric-card mc-blue" onclick="filterBySectorStatus('work')" style="cursor:pointer"><div class="mc-label">В работе</div><div class="mc-val" id="m-work">—</div><div class="mc-sub" id="m-work-sub"></div></div>
         <div class="metric-card mc-red"><div class="mc-icon"></div><div class="mc-label">Просрочено</div><div class="mc-val" id="m-over">—</div><div class="mc-sub">Требуют внимания</div></div>
       </div>
       <div class="alert-card" style="margin-bottom:10px">
@@ -616,7 +616,7 @@ html,body{height:100%;overflow:hidden;font-family:'Geologica',sans-serif;backgro
   </div>
   <div class="panel-body">
     <div class="pf-grid">
-      <div class="pf-item"><div class="pf-item-label">Сектор</div><select class="pf-sel" id="pf-sector" onchange="savePanelField('sector',this.value)"><option>Отдел продаж</option><option>Маркетинг</option><option>Мероприятия</option><option>Мерч</option><option>Ретриты</option><option>Операционка</option><option>Тренировки / Тренера</option><option>Продукт</option></select></div>
+      <div class="pf-item"><div class="pf-item-label">Сектор</div><select class="pf-sel" id="pf-sector" onchange="savePanelField('sector',this.value)"><option>Отдел продаж</option><option>Маркетинг</option><option>Мероприятия</option><option>Мерч</option><option>Ретриты</option><option>Операционка</option><option>Тренировки / Тренера</option></select></div>
       <div class="pf-item"><div class="pf-item-label">Ответственный</div><select class="pf-sel" id="pf-who" onchange="savePanelField('who',this.value)"><option>Анна</option><option>Павел</option><option>Владимир</option><option>Ксения</option><option>Кристина</option><option>Евгения</option></select></div>
       <div class="pf-item"><div class="pf-item-label">Дедлайн</div><input type="date" class="pf-date" id="pf-deadline" onchange="savePanelField('deadline',this.value)"></div>
       <div class="pf-item"><div class="pf-item-label">Приоритет</div><select class="pf-sel" id="pf-prio" onchange="savePanelField('prio',this.value)"><option value="high">🔴 Высокий</option><option value="mid">🟡 Средний</option><option value="low">🟢 Низкий</option></select></div>
@@ -695,13 +695,11 @@ html,body{height:100%;overflow:hidden;font-family:'Geologica',sans-serif;backgro
     <div id="idea-banner-wrap"></div>
     <div class="fg"><label class="flbl">Название</label><input class="finput" id="nt-name" placeholder="Что нужно сделать?"></div>
     <div class="frow">
-      <div class="fg"><label class="flbl">Сектор</label><select class="fsel" id="nt-sector"><option>Отдел продаж</option><option>Маркетинг</option><option>Мероприятия</option><option>Мерч</option><option>Ретриты</option><option>Операционка</option><option>Тренировки / Тренера</option><option>Продукт</option></select></div>
+      <div class="fg"><label class="flbl">Сектор</label><select class="fsel" id="nt-sector"><option>Отдел продаж</option><option>Маркетинг</option><option>Мероприятия</option><option>Мерч</option><option>Ретриты</option><option>Операционка</option><option>Тренировки / Тренера</option></select></div>
       <div class="fg"><label class="flbl">Ответственный</label><select class="fsel" id="nt-who"><option>Анна</option><option>Павел</option><option>Владимир</option><option>Ксения</option><option>Кристина</option><option>Евгения</option></select></div>
     </div>
-    <div class="frow">
-      <div class="fg"><label class="flbl">Дедлайн</label><input class="finput" type="date" id="nt-deadline"></div>
-      <div class="fg"><label class="flbl">Статус</label><select class="fsel" id="nt-status"><option value="work">В работе</option><option value="idea">Идея</option><option value="review">На согласовании</option><option value="hold">Отложено</option></select></div>
-    </div>
+    <div class="fg"><label class="flbl">Дедлайн</label><input class="finput" type="date" id="nt-deadline"></div>
+    <div class="fg"><label class="flbl">Статус</label><select class="fsel" id="nt-status"><option value="work">В работе</option><option value="idea">Идея</option><option value="review">На согласовании</option><option value="hold">Отложено</option></select></div>
     <div class="fg"><label class="flbl">Приоритет</label><select class="fsel" id="nt-prio"><option value="high">🔴 Высокий</option><option value="mid" selected>🟡 Средний</option><option value="low">🟢 Низкий</option></select></div>
     <div class="fg"><label class="flbl">Описание</label><textarea class="ftxt" id="nt-desc" placeholder="Детали..."></textarea></div>
     <div class="fg">
@@ -729,7 +727,7 @@ html,body{height:100%;overflow:hidden;font-family:'Geologica',sans-serif;backgro
     <div class="fg"><label class="flbl">Название</label><input class="finput" id="ni-name" placeholder="Суть идеи одной фразой"></div>
     <div class="fg"><label class="flbl">Описание</label><textarea class="ftxt" id="ni-desc" placeholder="Как работает? Что нужно?"></textarea></div>
     <div class="frow">
-      <div class="fg"><label class="flbl">Сектор</label><select class="fsel" id="ni-sector"><option>Отдел продаж</option><option>Маркетинг</option><option>Мероприятия</option><option>Мерч</option><option>Ретриты</option><option>Операционка</option><option>Тренировки / Тренера</option><option>Продукт</option></select></div>
+      <div class="fg"><label class="flbl">Сектор</label><select class="fsel" id="ni-sector"><option>Отдел продаж</option><option>Маркетинг</option><option>Мероприятия</option><option>Мерч</option><option>Ретриты</option><option>Операционка</option><option>Тренировки / Тренера</option></select></div>
       <div class="fg"><label class="flbl">Важность</label><select class="fsel" id="ni-score"><option value="1">⭐ 1</option><option value="2">⭐⭐ 2</option><option value="3" selected>⭐⭐⭐ 3</option><option value="4">⭐⭐⭐⭐ 4</option><option value="5">⭐⭐⭐⭐⭐ 5</option></select></div>
     </div>
     <div class="fg"><label class="flbl">Финансовый потенциал</label><select class="fsel" id="ni-fin"><option>Высокий</option><option>Средний</option><option>Низкий</option></select></div>
@@ -841,26 +839,24 @@ function renderNPS(csv){
   const topGood = topKeywords(goodTexts);
   const topBad  = topKeywords(badTexts);
 
-  // Check for new neutrals/detractors and send TG notifications
-  const prevNPS = parseInt(localStorage.getItem('ls_prev_nps')||'100');
+  // Проверяем изменения NPS — уведомляем только если данные уже были (не первый запуск)
+  const prevNPS = localStorage.getItem('ls_prev_nps'); // null = первый запуск
   const prevDet = parseInt(localStorage.getItem('ls_prev_det')||'0');
   const prevNeu = parseInt(localStorage.getItem('ls_prev_neu')||'0');
-  if(detractors > prevDet || neutrals > prevNeu){
-    const newDet = detractors - prevDet;
-    const newNeu = neutrals - prevNeu;
+  if(prevNPS !== null && (detractors > prevDet || neutrals > prevNeu)){
+    const newDet = Math.max(0, detractors - prevDet);
+    const newNeu = Math.max(0, neutrals - prevNeu);
     let alertMsg = '';
     if(newDet > 0) alertMsg += `<b>Новый детрактор в NPS!</b>\n\nNPS снизился. Новых детракторов: +${newDet}\nТекущий NPS: ${nps}`;
     if(newNeu > 0) alertMsg += `${alertMsg?'\n\n':''}<b>Новый нейтрал в NPS!</b>\n\nНовых нейтралов: +${newNeu}\nТекущий NPS: ${nps}`;
     if(alertMsg){
-      // Notify all users
       USERS.forEach(u => sendTgNotif(u.name, alertMsg));
       addNotif('Изменение NPS — новый детрактор/нейтрал', `NPS: ${nps} · Детракторы: ${detractors} · Нейтралы: ${neutrals}`, '', 't-orange');
-      toast('Уведомление о NPS отправлено команде');
     }
   }
-  localStorage.setItem('ls_prev_nps', nps);
-  localStorage.setItem('ls_prev_det', detractors);
-  localStorage.setItem('ls_prev_neu', neutrals);
+  localStorage.setItem('ls_prev_nps', String(nps));
+  localStorage.setItem('ls_prev_det', String(detractors));
+  localStorage.setItem('ls_prev_neu', String(neutrals));
 
   el.innerHTML = `
     <!-- NPS SCORE -->
@@ -972,10 +968,12 @@ async function loadFromAirtable(force=false){
       tasks.forEach(t=>{ if(t.atId) localById[t.atId]=t; });
       tasks = incoming.map(t => {
         const local = localById[t.atId];
-        // Если локально статус обновлён — оставляем локальный
-        if(local && local._localStatus) return {...t, status: local.status, _localStatus: true};
+        // Если локально статус изменён — сохраняем его
+        if(local && local._localStatus) return {...t, status: local.status, overdue: local.overdue, _localStatus: true};
         return t;
       });
+      // Убираем из списка задачи которые локально отмечены done
+      // (они уже в Airtable как Done, просто ждём синхронизации)
       tasks.forEach(t=>{if(!extras[t.id])extras[t.id]={desc:'',checklist:[],comments:[],history:[{text:'Задача загружена',time:nowStr()}],scores:{impact:3,finance:3,urgency:3,complexity:3},nextCI:1};});
       if(force) toast(`Обновлено: ${tasks.length} задач`);
     }
@@ -1025,27 +1023,27 @@ let TG_IDS = JSON.parse(localStorage.getItem('ls_tg_ids')||'{}');
 
 async function sendTgNotif(toName, text){
   const chatId = TG_IDS[toName];
-  if(!chatId){ console.log('TG ID не найден для', toName); return; }
+  if(!chatId) return; // ID не найден — тихо пропускаем
   try{
     await fetch(`${TG_URL}/sendMessage`, {
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({
-        chat_id: chatId,
-        text: text,
-        parse_mode: 'HTML'
-      })
+      body: JSON.stringify({chat_id:chatId, text, parse_mode:'HTML'})
     });
-    console.log('✓ TG уведомление отправлено →', toName);
-  }catch(e){ console.error('TG sendMessage error:', e); }
+  }catch(e){
+    // Тихая ошибка — в Mini App Telegram может блокировать исходящие запросы
+    console.log('TG notif skipped:', toName);
+  }
 }
 
 // Проверить и зарегистрировать Telegram ID текущего пользователя
 async function registerTgId(){
+  // Только ручной вызов через кнопку — не вызывать автоматически
   if(!currentUser) return;
-  if(TG_IDS[currentUser.name]) return; // уже зарегистрирован
+  if(TG_IDS[currentUser.name]) return;
   try{
     const res = await fetch(`${TG_URL}/getUpdates?limit=50&timeout=0`);
+    if(!res.ok) return;
     const data = await res.json();
     if(!data.ok) return;
     data.result.forEach(upd => {
@@ -1055,44 +1053,40 @@ async function registerTgId(){
         const from = msg.from;
         TG_IDS[currentUser.name] = String(from.id);
         localStorage.setItem('ls_tg_ids', JSON.stringify(TG_IDS));
-        // Отвечаем приветственным сообщением с кнопкой
         fetch(`${TG_URL}/sendMessage`, {
           method:'POST', headers:{'Content-Type':'application/json'},
           body: JSON.stringify({
             chat_id: from.id,
-            text: `<b>Добро пожаловать, ${currentUser.name}!</b>\n\nВы подключены к системе управления задачами Lady Stretch.\n\nТеперь вы будете получать уведомления о новых задачах прямо здесь.`,
+            text: `<b>Добро пожаловать, ${currentUser.name}!</b>\n\nВы подключены к системе управления задачами Lady Stretch.`,
             parse_mode: 'HTML',
-            reply_markup: {
-              inline_keyboard:[[{
-                text: 'Открыть приложение',
-                web_app: {url: 'https://pbwork41.github.io/ladystretch/'}
-              }]]
-            }
+            reply_markup: {inline_keyboard:[[{text:'Открыть приложение',web_app:{url:'https://pbwork41.github.io/ladystretch/'}}]]}
           })
         });
-        toast(`Telegram подключён`);
+        toast('Telegram подключён');
       }
     });
-  }catch(e){ console.error('registerTgId error:', e); }
+  }catch(e){
+    console.log('registerTgId недоступно — нормально в Mini App');
+  }
 }
 
 // ═══════════════════════════════════════════════════════
 // USERS / ROLES
 // ═══════════════════════════════════════════════════════
 const USERS = [
-  {name:'Павел',    role:'Руководитель',      init:'ПВ', grad:'linear-gradient(135deg,#5e8fe0,#8e6cd4)', isManager:true,  sectors:null},
-  {name:'Владимир', role:'Руководитель',      init:'ВЛ', grad:'linear-gradient(135deg,#4ab8b8,#5aac80)', isManager:true,  sectors:null},
-  {name:'Анна',     role:'Маркетинг',         init:'АН', grad:'linear-gradient(135deg,#c9a86c,#d4788e)', isManager:false, sectors:['Маркетинг','Продукт','Мероприятия','Ретриты']},
-  {name:'Ксения',   role:'Ст. менеджер',      init:'КС', grad:'linear-gradient(135deg,#d4924a,#d45a5a)', isManager:false, sectors:['Отдел продаж']},
-  {name:'Кристина', role:'Вед. тренер',        init:'КР', grad:'linear-gradient(135deg,#8e6cd4,#d4788e)', isManager:false, sectors:['Тренировки / Тренера']},
-  {name:'Евгения',  role:'Ассистент',          init:'ЕВ', grad:'linear-gradient(135deg,#6e7390,#454860)', isManager:false, sectors:null, isAssistant:true},
+  {name:'Павел',    role:'Руководитель',   init:'ПВ', grad:'linear-gradient(135deg,#5e8fe0,#8e6cd4)', isManager:true,  sectors:null},
+  {name:'Владимир', role:'Руководитель',   init:'ВЛ', grad:'linear-gradient(135deg,#4ab8b8,#5aac80)', isManager:true,  sectors:null},
+  {name:'Анна',     role:'Маркетинг',      init:'АН', grad:'linear-gradient(135deg,#c9a86c,#d4788e)', isManager:false, sectors:['Маркетинг','Мероприятия','Мерч','Ретриты','Тренировки / Тренера']},
+  {name:'Ксения',   role:'Ст. менеджер',   init:'КС', grad:'linear-gradient(135deg,#d4924a,#d45a5a)', isManager:false, sectors:['Отдел продаж','Мероприятия','Мерч']},
+  {name:'Кристина', role:'Вед. тренер',    init:'КР', grad:'linear-gradient(135deg,#8e6cd4,#d4788e)', isManager:false, sectors:['Тренировки / Тренера']},
+  {name:'Евгения',  role:'Ассистент',      init:'ЕВ', grad:'linear-gradient(135deg,#6e7390,#454860)', isManager:false, sectors:null, isAssistant:true},
 ];
 
 const SC = {'Отдел продаж':'var(--blue)','Маркетинг':'var(--pink)','Мероприятия':'var(--green)','Мерч':'var(--orange)','Ретриты':'var(--gold)','Операционка':'var(--purple)','Тренировки / Тренера':'var(--teal)','Продукт':'var(--teal)'};
 const STATUS_COL = {idea:'var(--purple)',work:'var(--blue)',review:'var(--orange)',done:'var(--green)',hold:'var(--muted)'};
 const STATUS_LBL = {idea:'Идея',work:'В работе',review:'На согласовании',done:'Выполнено',hold:'Отложено'};
 const PRIO_COL   = {high:'var(--red)',mid:'var(--orange)',low:'var(--green)'};
-const SECTORS    = ['Отдел продаж','Маркетинг','Мероприятия','Мерч','Ретриты','Операционка','Тренировки / Тренера','Продукт'];
+const SECTORS    = ['Отдел продаж','Маркетинг','Мероприятия','Мерч','Ретриты','Операционка','Тренировки / Тренера'];
 
 let currentUser = null;
 let tasks = [];
@@ -1129,9 +1123,13 @@ function scoreCalc(i,f,u,c){const s=(i*2+f*2+u)/Math.max(c,1);let label,color,pr
 // Visibility: what can current user see?
 function canSeeTask(t){
   if(!currentUser) return false;
-  if(currentUser.isManager) return true; // Павел и Владимир видят всё
-  // Все остальные видят ТОЛЬКО свои задачи
-  return t.who === currentUser.name;
+  if(currentUser.isManager) return true;
+  // Ассистент видит только свои задачи
+  if(currentUser.isAssistant) return t.who === currentUser.name;
+  // Остальные: свои задачи + задачи своих секторов
+  if(t.who === currentUser.name) return true;
+  if(currentUser.sectors && currentUser.sectors.includes(t.sector)) return true;
+  return false;
 }
 
 // ═══════════════════════════════════════════════════════
@@ -1314,8 +1312,6 @@ function login(u){
   // Дефолтный режим
   taskMode = 'mine';
   loadFromAirtable();
-  // Пытаемся зарегистрировать TG ID текущего пользователя
-  setTimeout(registerTgId, 2000);
 }
 
 function logout(){
@@ -1422,7 +1418,7 @@ function renderDashboard(){
 
   function filterBySector(s){ filterSector=s; goTab('tasks'); }
   // Sector bars
-  document.getElementById('sector-bars-dash').innerHTML=SECTORS.map(s=>{const st=tasks.filter(t=>t.sector===s),sd=st.filter(t=>t.status==='done').length,pct=st.length?Math.round(sd/st.length*100):0;return`<div class="sb-row"><div class="sb-name">${s.split('/')[0].trim()}</div><div class="sb-track"><div class="sb-fill" style="width:${pct}%;background:${SC[s]||'var(--muted)'}"></div></div><div class="sb-pct">${pct}%</div></div>`;}).join('');
+  document.getElementById('sector-bars-dash').innerHTML=SECTORS.map(s=>{const st=tasks.filter(t=>t.sector===s),sd=st.filter(t=>t.status==='done').length,pct=st.length?Math.round(sd/st.length*100):0;return`<div class="sb-row"><div class="sb-name">${s==='Отдел продаж'?'Продажи':s==='Тренировки / Тренера'?'Тренировки':s.split('/')[0].trim()}</div><div class="sb-track"><div class="sb-fill" style="width:${pct}%;background:${SC[s]||'var(--muted)'}"></div></div><div class="sb-pct">${pct}%</div></div>`;}).join('');
   // Alerts mini
   const al=[...visible.filter(t=>t.overdue&&t.status!=='done').map(t=>`<div class="alert-row"><span class="tag t-red">Просрочено</span><span>${t.name.slice(0,32)}${t.name.length>32?'…':''}</span></div>`)];
   document.getElementById('alerts-mini').innerHTML=al.slice(0,4).join('')||'<div style="font-size:12px;color:var(--green);padding:4px 0">✓ Всё под контролем</div>';
@@ -1433,15 +1429,33 @@ function renderDashboard(){
 // ═══════════════════════════════════════════════════════
 function renderSectorChips(){
   const el=document.getElementById('sector-chips');if(!el)return;
-  el.innerHTML=['Все',...SECTORS].map(s=>`<div class="chip${filterSector===(s==='Все'?'':s)?' active':''}" onclick="setSector('${s}')">${s==='Тренировки / Тренера'?'🏋️ Тренировки':s==='Отдел продаж'?'📈 Продажи':s}</div>`).join('');
+  const availSectors = (currentUser?.isManager || !currentUser?.sectors)
+    ? SECTORS
+    : currentUser.sectors.filter(s=>SECTORS.includes(s));
+  el.innerHTML=['Все',...availSectors].map(s=>{
+    const lbl=s==='Тренировки / Тренера'?'Тренировки':s==='Отдел продаж'?'Продажи':s;
+    return`<div class="chip${filterSector===(s==='Все'?'':s)?' active':''}" onclick="setSector('${s}')">${lbl}</div>`;
+  }).join('');
 }
 function renderStatusPills(){
   const el=document.getElementById('status-pills');if(!el)return;
   const statuses=[{k:'',l:'Все'},{k:'idea',l:'Идея'},{k:'work',l:'В работе'},{k:'review',l:'На согл.'},{k:'done',l:'Выполнено'},{k:'hold',l:'Отложено'}];
   el.innerHTML=statuses.map(s=>{const col=s.k?STATUS_COL[s.k]:'var(--muted)';const active=filterStatus===s.k;return`<div class="status-pill${active?' active':''}" style="${active?`background:${col}22;color:${col};border-color:${col}55`:''}" onclick="setStatus('${s.k}')">${s.l}</div>`;}).join('');
 }
-function setSector(s){filterSector=s==='Все'?'':s;renderTasks();}
-function setStatus(s){filterStatus=s;renderTasks();}
+function filterBySectorStatus(st){
+  filterSector=''; filterStatus=st==='overdue'?'':st;
+  tasks._whoFilter=''; taskMode='all';
+  // Для просроченных — специальный фильтр
+  tasks._overdueOnly = st==='overdue';
+  goTab('tasks');
+  if(currentUser?.isManager){
+    document.getElementById('mode-all')?.classList.add('active');
+    document.getElementById('mode-mine')?.classList.remove('active');
+  }
+}
+
+function setSector(s){filterSector=s==='Все'?'':s;tasks._overdueOnly=false;renderTasks();}
+function setStatus(s){filterStatus=s;tasks._overdueOnly=false;renderTasks();}
 
 function renderTasks(){
   renderSectorChips();renderStatusPills();
@@ -1454,9 +1468,11 @@ function renderTasks(){
     if(isManager){
       if(taskMode==='mine'&&t.who!==currentUser.name)return false;
     } else {
-      if(t.who!==currentUser.name)return false;
+      if(!canSeeTask(t))return false;
     }
-    // Выполненные задачи скрыты если не выбран фильтр "Выполнено"
+    // Фильтр "просрочено" из дашборда
+    if(tasks._overdueOnly) return t.overdue && t.status!=='done';
+    // Выполненные скрыты если не выбран фильтр
     if(t.status==='done'&&filterStatus!=='done')return false;
     if(filterSector&&t.sector!==filterSector)return false;
     if(filterStatus&&t.status!==filterStatus)return false;
