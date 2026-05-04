@@ -499,6 +499,11 @@ html,body{height:100%;overflow:hidden;font-family:'Geologica',sans-serif;backgro
         <div class="sec-title" id="tasks-page-title">Задачи</div>
         <button class="btn btn-ghost btn-sm sec-ml" onclick="goKanban()">Канбан</button>
       </div>
+      <!-- ПОИСК -->
+      <div style="position:relative;margin-bottom:12px">
+        <svg viewBox="0 0 24 24" style="position:absolute;left:11px;top:50%;transform:translateY(-50%);width:15px;height:15px;fill:none;stroke:var(--muted);stroke-width:1.5;stroke-linecap:round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input id="task-search" class="finput" placeholder="Поиск по задачам..." style="padding-left:34px;font-size:13px" oninput="renderTasks()" autocomplete="off">
+      </div>
       <!-- Для руководителей: переключатель Мои / Все -->
       <div id="tasks-mode-switch" style="display:none;margin-bottom:12px">
         <div style="display:flex;gap:6px;background:rgba(255,255,255,.04);border:1px solid var(--glass-b);border-radius:12px;padding:3px">
@@ -572,6 +577,7 @@ html,body{height:100%;overflow:hidden;font-family:'Geologica',sans-serif;backgro
       </div>
       <div>Задачи</div>
       <div class="nav-badge" id="overdue-badge" style="display:none"></div>
+      <div class="nav-badge" id="tasks-count-badge" style="display:none;background:var(--violet)"></div>
     </div>
     <div class="nav-tab" id="nav-ideas" onclick="goTab('ideas')">
       <div class="nav-icon-wrap" id="nw-ideas">
@@ -1123,6 +1129,9 @@ function login(u){
   // Дефолтный режим
   taskMode = 'mine';
   loadFromAirtable();
+  // Проверяем дедлайны через 5 сек после загрузки
+  setTimeout(checkDeadlines, 5000);
+  setTimeout(checkWeeklyReport, 6000);
 }
 
 function logout(){
@@ -1184,9 +1193,12 @@ function renderDashboard(){
   document.getElementById('m-over').textContent=over;
   const ob=document.getElementById('overdue-badge');
   if(over>0){ob.textContent=over;ob.style.display='block';}else ob.style.display='none';
+  // Счётчик активных задач
+  const cb=document.getElementById('tasks-count-badge');
+  if(cb){const activeCnt=visible.filter(t=>t.status!=='done').length;if(activeCnt>0){cb.textContent=activeCnt;cb.style.display='block';}else cb.style.display='none';}
   // Focus
   const focus=visible.filter(t=>t.status==='work'&&!t.overdue&&t.status!=='done').slice(0,3);
-  document.getElementById('focus-items').innerHTML=focus.length?focus.map(t=>`<div class="focus-item"><div class="focus-check" onclick="this.classList.toggle('done');this.textContent=this.classList.contains('done')?'✓':''"></div><span>${t.name} <span style="color:var(--muted);font-size:10.5px">— ${t.who}</span></span></div>`).join(''):'<div style="font-size:12px;color:var(--green)">✓ Нет срочных задач</div>';
+  document.getElementById('focus-items').innerHTML=focus.length?focus.map(t=>`<div class="focus-item" id="focus-${t.id}"><div class="focus-check" onclick="completeFocusTask('${t.id}',this)"></div><span>${t.name} <span style="color:var(--muted);font-size:10.5px">— ${t.who}</span></span></div>`).join(''):'<div style="font-size:12px;color:var(--green)">Нет срочных задач</div>';
   // Circular sector progress donuts
   const sdw = document.getElementById('sectors-donut-wrap');
   if(sdw){
@@ -1253,6 +1265,30 @@ function renderStatusPills(){
   const statuses=[{k:'',l:'Все'},{k:'idea',l:'Идея'},{k:'work',l:'В работе'},{k:'review',l:'На согл.'},{k:'done',l:'Выполнено'},{k:'hold',l:'Отложено'}];
   el.innerHTML=statuses.map(s=>{const col=s.k?STATUS_COL[s.k]:'var(--muted)';const active=filterStatus===s.k;return`<div class="status-pill${active?' active':''}" style="${active?`background:${col}22;color:${col};border-color:${col}55`:''}" onclick="setStatus('${s.k}')">${s.l}</div>`;}).join('');
 }
+function completeFocusTask(taskId, el){
+  el.classList.add('done');
+  el.textContent = '✓';
+  // Убираем из массива мгновенно
+  const t = tasks.find(x=>x.id==taskId);
+  if(!t) return;
+  t.status = 'done';
+  t._localStatus = true;
+  t.overdue = false;
+  window._lastLocalChange = Date.now();
+  tasks = tasks.filter(x=>x.id!=taskId);
+  updateTaskInAT(t);
+  toast('Задача выполнена — убрана в архив');
+  // Скрываем строку с анимацией
+  const row = document.getElementById('focus-'+taskId);
+  if(row){ row.style.transition='opacity .4s,max-height .4s'; row.style.opacity='0'; row.style.maxHeight='0'; row.style.overflow='hidden'; setTimeout(()=>{ row.remove(); renderDashboard(); }, 400); }
+  // Уведомления
+  if(currentUser&&!currentUser.isManager){
+    addNotif(`${t.name.slice(0,30)} — выполнено`,`${currentUser.name} завершил задачу · ${nowStr()}`,'','t-green');
+    const msg=`<b>Задача выполнена</b>\n\n<b>${t.name}</b>\n\nВыполнил: ${currentUser.name}`;
+    USERS.filter(u=>u.isManager).forEach(m=>sendTgNotif(m.name,msg));
+  }
+}
+
 function filterBySectorStatus(st){
   filterSector=''; filterStatus=st==='overdue'?'':st;
   tasks._whoFilter=''; taskMode='all';
@@ -1288,6 +1324,9 @@ function renderTasks(){
     if(filterSector&&t.sector!==filterSector)return false;
     if(filterStatus&&t.status!==filterStatus)return false;
     if(whoF&&t.who!==whoF)return false;
+    // Поиск
+    const sq=(document.getElementById('task-search')?.value||'').toLowerCase().trim();
+    if(sq && !t.name.toLowerCase().includes(sq) && !t.who.toLowerCase().includes(sq) && !t.sector.toLowerCase().includes(sq)) return false;
     return true;
   });
   list.sort((a,b)=>(b.pinned||0)-(a.pinned||0)||(b.overdue||0)-(a.overdue||0)||new Date(a.deadline)-new Date(b.deadline));
@@ -1491,6 +1530,65 @@ function openPanel(id){
   // Reset delegate
   delegateVisible=false;
   document.getElementById('delegate-list').style.display='none';
+}
+
+function checkWeeklyReport(){
+  if(!currentUser?.isManager || !tasks.length) return;
+  const now = new Date();
+  // Только по понедельникам
+  if(now.getDay() !== 1) return;
+  const lastReport = localStorage.getItem('ls_weekly_report');
+  const thisMonday = new Date(now); thisMonday.setHours(0,0,0,0);
+  if(lastReport === thisMonday.toDateString()) return;
+  localStorage.setItem('ls_weekly_report', thisMonday.toDateString());
+
+  const done = tasks.filter(t=>t.status==='done').length;
+  const active = tasks.filter(t=>t.status==='work'||t.status==='review').length;
+  const overdue = tasks.filter(t=>t.overdue&&t.status!=='done').length;
+  const total = tasks.length;
+
+  const msg = `<b>Еженедельный отчёт Lady Stretch</b>\n\n` +
+    `Всего задач: ${total}\n` +
+    `Активных: ${active}\n` +
+    `Выполнено: ${done}\n` +
+    `Просрочено: ${overdue}\n\n` +
+    `${overdue>0?'Требуется внимание к просроченным задачам!':'Все задачи в норме.'}`;
+
+  // Отправляем всем руководителям
+  USERS.filter(u=>u.isManager).forEach(m=>sendTgNotif(m.name, msg));
+  toast('Еженедельный отчёт отправлен');
+}
+
+function checkDeadlines(){
+  if(!currentUser || !tasks.length) return;
+  const now = new Date();
+  const tomorrow = new Date(now); tomorrow.setDate(tomorrow.getDate()+1);
+  const myTasks = tasks.filter(t => canSeeTask(t) && t.status!=='done' && t.deadline);
+  const dueTomorrow = myTasks.filter(t=>{
+    const dl = new Date(t.deadline+'T23:59:59');
+    return dl >= now && dl <= tomorrow;
+  });
+  const overdue = myTasks.filter(t=>{
+    const dl = new Date(t.deadline+'T23:59:59');
+    return dl < now;
+  });
+  // Уведомляем только если не делали этого сегодня
+  const today = now.toDateString();
+  const lastCheck = localStorage.getItem('ls_deadline_check');
+  if(lastCheck === today) return;
+  localStorage.setItem('ls_deadline_check', today);
+
+  if(dueTomorrow.length > 0){
+    const names = dueTomorrow.map(t=>t.name.slice(0,25)).join(', ');
+    const msg = `<b>Дедлайн завтра!</b>\n\n${names}\n\nНе забудьте выполнить задачи вовремя.`;
+    sendTgNotif(currentUser.name, msg);
+    addNotif(`Дедлайн завтра: ${dueTomorrow.length} задач`, names, '', 't-orange');
+  }
+  if(overdue.length > 0){
+    const names = overdue.map(t=>t.name.slice(0,25)).join(', ');
+    const msg = `<b>Просроченные задачи: ${overdue.length}</b>\n\n${names}`;
+    sendTgNotif(currentUser.name, msg);
+  }
 }
 
 function closePanel(){
