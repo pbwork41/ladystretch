@@ -329,18 +329,42 @@ html,body{height:100%;overflow:hidden;font-family:'Geologica',sans-serif;backgro
 .notif-text{font-size:13px;font-weight:500;line-height:1.4;letter-spacing:.1px}
 .notif-sub{font-size:11px;color:var(--muted);margin-top:3px;font-weight:300}
 
-/* SWIPE */
-.task-wrap-swipe{position:relative;border-radius:var(--rs);overflow:hidden;margin-bottom:10px;isolation:isolate}
-.swipe-bg{position:absolute;inset:0;display:flex;align-items:center;border-radius:var(--rs);z-index:1}
-.swipe-bg-done{background:var(--sage);justify-content:flex-start;padding-left:18px}
-.swipe-bg-hold{background:var(--amber);justify-content:flex-end;padding-right:18px}
-.swipe-bg-label{font-size:12px;font-weight:500;color:#fff;display:flex;align-items:center;gap:6px}
-.swipe-bg-label svg{width:15px;height:15px;fill:none;stroke:#fff;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-.swipe-card{position:relative;transition:transform .05s;will-change:transform;z-index:2;background:var(--glass);border:1px solid var(--glass-b);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
-.swipe-card.dragging{transition:none}
-.swipe-card.snap-done{transition:transform .24s cubic-bezier(.4,0,.2,1),opacity .24s;transform:translateX(-115%) !important;opacity:0;z-index:0}
-.swipe-card.snap-hold{transition:transform .24s cubic-bezier(.4,0,.2,1),opacity .24s;transform:translateX(115%) !important;opacity:0;z-index:0}
-.swipe-card.snap-back{transition:transform .28s cubic-bezier(.4,0,.2,1)}
+/* TASK QUICK ACTIONS */
+.tqa-wrap{display:flex;align-items:center;gap:10px;background:var(--glass);border:1px solid var(--glass-b);border-radius:var(--rs);padding:13px 14px;margin-bottom:10px;backdrop-filter:blur(12px);box-shadow:var(--gshadow);transition:all .2s}
+.tqa-wrap.overdue{border-color:rgba(184,96,112,.3)}
+.tqa-wrap.mine{border-left:2px solid var(--gold)}
+.tqa-cb{width:22px;height:22px;border-radius:50%;border:1.5px solid rgba(255,255,255,.2);flex-shrink:0;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .22s;background:transparent}
+.tqa-cb:active{transform:scale(.9)}
+.tqa-cb.checking{background:linear-gradient(135deg,var(--sage),var(--teal));border-color:transparent;box-shadow:0 0 12px rgba(106,170,136,.4)}
+.tqa-cb svg{width:11px;height:11px;stroke:#fff;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;fill:none;opacity:0;transition:opacity .15s}
+.tqa-cb.checking svg{opacity:1}
+.tqa-body{flex:1;min-width:0;cursor:pointer}
+.tqa-name{font-size:13px;font-weight:500;line-height:1.4;margin-bottom:6px;color:var(--text)}
+.tqa-meta{display:flex;gap:5px;flex-wrap:wrap;align-items:center}
+.tqa-hold{flex-shrink:0;padding:5px 11px;border-radius:10px;font-size:11px;font-weight:500;cursor:pointer;background:rgba(200,144,96,.12);color:var(--amber);border:1px solid rgba(200,144,96,.25);font-family:'Geologica',sans-serif;transition:all .2s;white-space:nowrap}
+.tqa-hold:active{background:rgba(200,144,96,.25);transform:scale(.95)}
+
+/* HOLD MENU */
+.hold-menu{display:none;margin-top:8px;animation:fadeUp .2s ease}
+.hold-menu.open{display:block}
+.hold-menu-title{font-size:11px;color:var(--muted);text-align:center;margin-bottom:10px;letter-spacing:.4px;text-transform:uppercase}
+.hold-opts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.hold-opt{border:1px solid var(--glass-b);border-radius:14px;padding:12px 8px;text-align:center;cursor:pointer;background:var(--glass);backdrop-filter:blur(8px);transition:all .18s}
+.hold-opt:active{transform:scale(.95)}
+.hold-opt.ho-date{border-color:rgba(200,144,96,.3);background:rgba(200,144,96,.1)}
+.hold-opt.ho-idea{border-color:rgba(139,104,200,.3);background:rgba(139,104,200,.1)}
+.hold-opt.ho-pause{border-color:rgba(255,255,255,.1);background:rgba(255,255,255,.05)}
+.hold-opt svg{width:20px;height:20px;display:block;margin:0 auto 6px;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.hold-opt-lbl{font-size:12px;font-weight:500;line-height:1.2}
+.hold-opt-sub{font-size:10px;margin-top:3px;font-weight:300}
+.ho-date svg{stroke:var(--amber)} .ho-date .hold-opt-lbl{color:var(--amber)} .ho-date .hold-opt-sub{color:rgba(200,144,96,.6)}
+.ho-idea svg{stroke:var(--violet)} .ho-idea .hold-opt-lbl{color:var(--violet2)} .ho-idea .hold-opt-sub{color:rgba(139,104,200,.6)}
+.ho-pause svg{stroke:var(--muted)} .ho-pause .hold-opt-lbl{color:var(--muted)} .ho-pause .hold-opt-sub{color:var(--muted2)}
+.hold-date-row{margin-top:8px;display:none;animation:fadeUp .2s ease}
+.hold-date-row.open{display:flex;gap:8px;align-items:center}
+.hold-date-input{flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(200,144,96,.3);border-radius:10px;color:var(--text);font-size:12px;padding:8px 11px;font-family:'Geologica',sans-serif;outline:none}
+.hold-confirm{padding:8px 14px;border-radius:10px;background:rgba(200,144,96,.2);color:var(--amber);border:1px solid rgba(200,144,96,.3);font-size:12px;font-weight:500;cursor:pointer;font-family:'Geologica',sans-serif;white-space:nowrap}
+.hold-confirm:active{background:rgba(200,144,96,.35)}
 
 /* TASK MODE SWITCH */
 .mode-btn{flex:1;text-align:center;padding:7px 12px;border-radius:9px;font-size:12px;font-weight:500;cursor:pointer;color:var(--muted);transition:all .2s;letter-spacing:.2px}
@@ -1265,7 +1289,7 @@ function renderDashboard(){
 // ═══════════════════════════════════════════════════════
 function renderSectorChips(){
   const el=document.getElementById('sector-chips');if(!el)return;
-  const availSectors = (currentUser?.isManager || !currentUser?.sectors)
+  const availSectors = (currentUser&&currentUser.isManager || !currentUser&&currentUser.sectors)
     ? SECTORS
     : currentUser.sectors.filter(s=>SECTORS.includes(s));
   el.innerHTML=['Все',...availSectors].map(s=>{
@@ -1302,67 +1326,119 @@ function completeFocusTask(taskId, el){
   }
 }
 
-function initSwipe(taskId){
-  const card = document.getElementById('swcard-'+taskId);
-  const wrap = document.getElementById('swwrap-'+taskId);
-  if(!card || !wrap) return;
-  let startX=0, startY=0, curX=0, dragging=false, moved=false;
-  const THRESHOLD = 70;
-
-  function start(e){
-    startX = e.touches ? e.touches[0].clientX : e.clientX;
-    startY = e.touches ? e.touches[0].clientY : e.clientY;
-    dragging=true; moved=false; curX=0;
-    card.classList.add('dragging');
-  }
-  function move(e){
-    if(!dragging) return;
-    const dx = (e.touches ? e.touches[0].clientX : e.clientX) - startX;
-    const dy = (e.touches ? e.touches[0].clientY : e.clientY) - startY;
-    // Если вертикальный скролл — отменяем свайп
-    if(!moved && Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > 6){ dragging=false; card.classList.remove('dragging'); card.style.transform=''; return; }
-    curX = dx;
-    if(Math.abs(curX) > 8) moved=true;
-    if(moved){ card.style.transform=`translateX(${curX}px)`; e.preventDefault(); }
-  }
-  function end(e){
-    if(!dragging) return;
-    dragging=false;
-    card.classList.remove('dragging');
-    if(!moved){
-      card.style.transform='';
-      openPanel(taskId);
-      curX=0; return;
-    }
-    if(curX < -THRESHOLD){
-      card.classList.add('snap-done');
-      setTimeout(()=>{
-        wrap.style.display='none';
-        const t=tasks.find(x=>x.id==taskId);
-        if(t){ t.status='done'; t._localStatus=true; t.overdue=false; window._lastLocalChange=Date.now(); tasks=tasks.filter(x=>x.id!=taskId); updateTaskInAT(t); toast('Задача выполнена — убрана в архив'); renderDashboard(); if(currentUser&&!currentUser.isManager){ const msg=`<b>Задача выполнена</b>\n\n<b>${t.name}</b>\n\nВыполнил: ${currentUser.name}`; USERS.filter(u=>u.isManager).forEach(m=>sendTgNotif(m.name,msg)); } }
-      }, 230);
-    } else if(curX > THRESHOLD){
-      card.classList.add('snap-hold');
-      setTimeout(()=>{
-        wrap.style.display='none';
-        const t=tasks.find(x=>x.id==taskId);
-        if(t){ t.status='hold'; t._localStatus=true; window._lastLocalChange=Date.now(); updateTaskInAT(t); toast('Задача отложена'); renderTasks(); renderDashboard(); }
-      }, 230);
-    } else {
-      card.classList.add('snap-back');
-      card.style.transform='';
-      setTimeout(()=>card.classList.remove('snap-back'), 280);
-    }
-    curX=0; moved=false;
-  }
-
-  card.addEventListener('mousedown', start);
-  card.addEventListener('touchstart', start, {passive:true});
-  window.addEventListener('mousemove', move);
-  window.addEventListener('touchmove', move, {passive:false});
-  window.addEventListener('mouseup', end);
-  window.addEventListener('touchend', end);
+function toggleHoldMenu(taskId){
+  const menu = document.getElementById('hmenu-'+taskId);
+  if(!menu) return;
+  // Закрываем все другие меню
+  document.querySelectorAll('.hold-menu.open').forEach(m=>{
+    if(m.id!=='hmenu-'+taskId){ m.classList.remove('open'); }
+  });
+  menu.classList.toggle('open');
+  // Закрываем строку даты
+  const dateRow = document.getElementById('hdater-'+taskId);
+  if(dateRow) dateRow.classList.remove('open');
 }
+
+function holdWithDate(taskId){
+  const dateRow = document.getElementById('hdater-'+taskId);
+  if(dateRow) dateRow.classList.toggle('open');
+}
+
+function holdConfirmDate(taskId){
+  const dateInput = document.getElementById('hdate-'+taskId);
+  const newDate = dateInput?.value;
+  const t = tasks.find(x=>x.id==taskId);
+  if(!t) return;
+  t.status='hold'; t._localStatus=true;
+  if(newDate) t.deadline=newDate;
+  window._lastLocalChange=Date.now();
+  updateTaskInAT(t);
+  _removeTask(taskId, newDate ? `Задача отложена до ${fmtDate(newDate)}` : 'Задача отложена');
+}
+
+function holdToIdea(taskId){
+  const t = tasks.find(x=>x.id==taskId);
+  if(!t) return;
+  // Добавляем в идеи
+  const idea = {id:'idea-'+Date.now(), title:t.name, desc:'Перенесено из задач: '+t.sector, rating:3, tags:[t.sector], author:currentUser?currentUser.name:'', date:new Date().toLocaleDateString('ru')};
+  ideas.unshift(idea);
+  localStorage.setItem('ls_ideas', JSON.stringify(ideas));
+  // Помечаем задачу как hold
+  t.status='hold'; t._localStatus=true;
+  window._lastLocalChange=Date.now();
+  updateTaskInAT(t);
+  _removeTask(taskId, 'Задача перемещена в идеи');
+}
+
+function holdPause(taskId){
+  const t = tasks.find(x=>x.id==taskId);
+  if(!t) return;
+  t.status='hold'; t._localStatus=true;
+  t.deadline=''; // убираем дедлайн
+  window._lastLocalChange=Date.now();
+  updateTaskInAT(t);
+  _removeTask(taskId, 'Задача на паузе');
+}
+
+function _removeTask(taskId, msg){
+  const wrap = document.getElementById('tqw-'+taskId);
+  if(wrap){
+    wrap.style.transition='opacity .3s,max-height .35s,margin .35s';
+    wrap.style.opacity='0'; wrap.style.maxHeight='0';
+    wrap.style.overflow='hidden'; wrap.style.marginBottom='0';
+  }
+  setTimeout(()=>{
+    tasks=tasks.filter(x=>x.id!=taskId);
+    renderTasks(); renderDashboard();
+    toast(msg);
+  }, 320);
+}
+
+function quickDone(taskId){
+  const cb = document.getElementById('tqcb-'+taskId);
+  const wrap = document.getElementById('tqw-'+taskId);
+  if(!cb || !wrap) return;
+  cb.classList.add('checking');
+  setTimeout(()=>{
+    wrap.style.transition='opacity .3s, max-height .3s, margin .3s';
+    wrap.style.opacity='0';
+    wrap.style.maxHeight='0';
+    wrap.style.overflow='hidden';
+    wrap.style.marginBottom='0';
+    const t=tasks.find(x=>x.id==taskId);
+    if(t){
+      t.status='done'; t._localStatus=true; t.overdue=false;
+      window._lastLocalChange=Date.now();
+      tasks=tasks.filter(x=>x.id!=taskId);
+      updateTaskInAT(t);
+      toast('Задача выполнена — убрана в архив');
+      renderDashboard();
+      if(currentUser&&!currentUser.isManager){
+        addNotif(`${t.name.slice(0,30)} — выполнено`,`${currentUser.name} завершил задачу · ${nowStr()}`,'','t-green');
+        const msg=`<b>Задача выполнена</b>\n\n<b>${t.name}</b>\n\nВыполнил: ${currentUser.name}\nСектор: ${t.sector}`;
+        USERS.filter(u=>u.isManager).forEach(m=>sendTgNotif(m.name,msg));
+      }
+    }
+  }, 350);
+}
+
+function quickHold(taskId){
+  const wrap = document.getElementById('tqw-'+taskId);
+  const t = tasks.find(x=>x.id==taskId);
+  if(!t) return;
+  t.status='hold'; t._localStatus=true;
+  window._lastLocalChange=Date.now();
+  updateTaskInAT(t);
+  // Анимация исчезания
+  if(wrap){
+    wrap.style.transition='opacity .3s, max-height .3s, margin .3s';
+    wrap.style.opacity='0'; wrap.style.maxHeight='0';
+    wrap.style.overflow='hidden'; wrap.style.marginBottom='0';
+  }
+  toast('Задача отложена');
+  setTimeout(()=>{ tasks=tasks.filter(x=>x.id!=taskId); renderTasks(); renderDashboard(); }, 300);
+}
+
 
 function filterBySectorStatus(st){
   filterSector=''; filterStatus=st==='overdue'?'':st;
@@ -1370,7 +1446,7 @@ function filterBySectorStatus(st){
   // Для просроченных — специальный фильтр
   tasks._overdueOnly = st==='overdue';
   goTab('tasks');
-  if(currentUser?.isManager){
+  if(currentUser&&currentUser.isManager){
     document.getElementById('mode-all')?.classList.add('active');
     document.getElementById('mode-mine')?.classList.remove('active');
   }
@@ -1382,7 +1458,7 @@ function setStatus(s){filterStatus=s;tasks._overdueOnly=false;renderTasks();}
 function renderTasks(){
   renderSectorChips();renderStatusPills();
   const el=document.getElementById('task-list');if(!el)return;
-  const isManager=currentUser?.isManager;
+  const isManager=currentUser&&currentUser.isManager;
   const whoF=tasks._whoFilter||'';
   const sc=document.getElementById('sector-chips');
   if(sc)sc.style.display=(isManager&&taskMode==='all')?'flex':'none';
@@ -1406,34 +1482,53 @@ function renderTasks(){
   });
   list.sort((a,b)=>(b.pinned||0)-(a.pinned||0)||(b.overdue||0)-(a.overdue||0)||new Date(a.deadline)-new Date(b.deadline));
   if(!list.length){el.innerHTML=`<div class="empty"><div style="font-size:36px;opacity:.35;margin-bottom:10px">${filterSector||filterStatus?'○':'✓'}</div><div class="empty-text">${filterSector||filterStatus?'Нет задач по фильтру':'Нет задач!'}</div></div>`;return;}
-  el.innerHTML=list.map(t=>{
+      el.innerHTML=list.map(t=>{
     const dc=dlCls(t.deadline,t.status);
-    const isMine=t.who===currentUser?.name;
-    return`<div class="task-wrap-swipe" id="swwrap-${t.id}">
-      <div class="swipe-bg swipe-bg-done">
-        <div class="swipe-bg-label"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Выполнено</div>
-      </div>
-      <div class="swipe-bg swipe-bg-hold">
-        <div class="swipe-bg-label">Отложить <svg viewBox="0 0 24 24"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg></div>
-      </div>
-      <div class="task-card swipe-card${t.overdue?' overdue':''}${isMine?' mine':''}" id="swcard-${t.id}">
-        <div class="tc-prio" style="background:${PRIO_COL[t.prio]}"></div>
-        <div class="tc-body">
-          <div class="tc-name">${t.name}</div>
-          <div class="tc-meta">
-            <span class="tag" style="background:${SC[t.sector]||'var(--muted)'}22;color:${SC[t.sector]||'var(--muted)'}">${t.sector.split('/')[0].trim()}</span>
+    const isMine=t.who===(currentUser?currentUser.name:'');
+    const sectorLbl=t.sector==='Отдел продаж'?'Продажи':t.sector==='Тренировки / Тренера'?'Тренировки':t.sector.split('/')[0].trim();
+    return`<div style="margin-bottom:10px" id="tqw-${t.id}">
+      <div class="tqa-wrap${t.overdue?' overdue':''}${isMine?' mine':''}" style="margin-bottom:0">
+        <div class="tqa-cb" id="tqcb-${t.id}" onclick="quickDone('${t.id}')">
+          <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <div class="tqa-body" onclick="openPanel('${t.id}')">
+          <div class="tqa-name">${t.name}</div>
+          <div class="tqa-meta">
+            <span class="tag" style="background:${SC[t.sector]||'var(--muted)'}22;color:${SC[t.sector]||'var(--muted)'}">${sectorLbl}</span>
             <span class="tag" style="background:${STATUS_COL[t.status]}22;color:${STATUS_COL[t.status]}">${STATUS_LBL[t.status]}</span>
-            ${t.tags.slice(0,1).map(tg=>`<span class="tag t-muted">${tg}</span>`).join('')}
             ${t.overdue?'<span class="tag t-red">!</span>':''}
-            ${isManager&&taskMode==='all'?`<span class="tc-who">${t.who}</span>`:''}
-            <span class="tc-dl ${dc}">${fmtDate(t.deadline)}</span>
+            ${(currentUser&&currentUser.isManager)&&taskMode==="all"?'<span style="margin-left:auto;font-size:10.5px;color:var(--muted);font-weight:300">'+t.who+'</span>':""}
+            <span class="tc-dl ${dc}" style="font-size:10.5px;font-weight:300">${fmtDate(t.deadline)}</span>
           </div>
+        </div>
+        <div class="tqa-hold" onclick="toggleHoldMenu('${t.id}')">Отложить</div>
+      </div>
+      <div class="hold-menu" id="hmenu-${t.id}">
+        <div class="hold-menu-title">Что сделать с задачей?</div>
+        <div class="hold-opts">
+          <div class="hold-opt ho-date" onclick="holdWithDate('${t.id}')">
+            <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+            <div class="hold-opt-lbl">Перенести</div>
+            <div class="hold-opt-sub">Новый дедлайн</div>
+          </div>
+          <div class="hold-opt ho-idea" onclick="holdToIdea('${t.id}')">
+            <svg viewBox="0 0 24 24"><path d="M12 3C8.5 3 6 5.5 6 8.5c0 2.2 1 4.2 2.5 5.5V17h7v-3c1.5-1.3 2.5-3.3 2.5-5.5C18 5.5 15.5 3 12 3z"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="10" y1="17" x2="14" y2="17"/></svg>
+            <div class="hold-opt-lbl">В идеи</div>
+            <div class="hold-opt-sub">Вернуться позже</div>
+          </div>
+          <div class="hold-opt ho-pause" onclick="holdPause('${t.id}')">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M10 9v6M14 9v6"/></svg>
+            <div class="hold-opt-lbl">Пауза</div>
+            <div class="hold-opt-sub">Без даты</div>
+          </div>
+        </div>
+        <div class="hold-date-row" id="hdater-${t.id}">
+          <input class="hold-date-input" type="date" id="hdate-${t.id}" placeholder="Выберите дату">
+          <div class="hold-confirm" onclick="holdConfirmDate('${t.id}')">Ок</div>
         </div>
       </div>
     </div>`;
   }).join('');
-  // Инициализируем свайп для всех карточек
-  requestAnimationFrame(()=>{ list.forEach(t=>initSwipe(t.id)); });
 }
 
 // ═══════════════════════════════════════════════════════
@@ -1604,9 +1699,9 @@ function openPanel(id){
   onScoreChange();
   // Delegate visibility
   const ds=document.getElementById('delegate-section');
-  if(ds)ds.style.display=currentUser?.isManager?'block':'none';
+  if(ds)ds.style.display=currentUser&&currentUser.isManager?'block':'none';
   const dels=document.getElementById('delete-section');
-  if(dels)dels.style.display=currentUser?.isManager?'block':'none';
+  if(dels)dels.style.display=currentUser&&currentUser.isManager?'block':'none';
   // Tags, checklist, comments, history
   renderPanelTags();renderPanelChecklist();renderPanelComments();renderPanelHistory();
   document.getElementById('panel-overlay').classList.add('open');
@@ -1618,7 +1713,7 @@ function openPanel(id){
 }
 
 function checkWeeklyReport(){
-  if(!currentUser?.isManager || !tasks.length) return;
+  if(!currentUser&&currentUser.isManager || !tasks.length) return;
   const now = new Date();
   // Только по понедельникам
   if(now.getDay() !== 1) return;
@@ -1721,7 +1816,7 @@ function savePanelField(field,val){
   if(field==='who'){
     const oldWho=t.who;t.who=val;
     ex?.history.push({text:`Ответственный → ${val}`,time:nowStr()});
-    if(val!==oldWho){addNotif(`Новая задача: ${t.name.slice(0,28)}`,`Назначена от ${currentUser?.name} · ${nowStr()}`,'','t-blue');}
+    if(val!==oldWho){addNotif(`Новая задача: ${t.name.slice(0,28)}`,`Назначена от ${(currentUser?currentUser.name:'')} · ${nowStr()}`,'','t-blue');}
   }
   if(field==='deadline'){t.deadline=val;ex?.history.push({text:`Дедлайн → ${fmtDate(val)}`,time:nowStr()});}
   if(field==='prio'){t.prio=val;ex?.history.push({text:`Приоритет → ${val}`,time:nowStr()});}
@@ -1746,7 +1841,7 @@ function showDelegate(){
   const t=tasks.find(x=>x.id==activePanelId);
   el.style.display='block';
   el.innerHTML=`<div style="font-size:11.5px;color:var(--muted);margin-bottom:8px">Выберите сотрудника:</div>`+
-    USERS.filter(u=>u.name!==currentUser?.name).map(u=>`
+    USERS.filter(u=>u.name!==(currentUser?currentUser.name:'')).map(u=>`
     <div class="delegate-btn" onclick="delegateTo('${u.name}')">
       <div class="delegate-av" style="background:${u.grad}">${u.init}</div>
       <div><div class="delegate-name">${u.name}</div><div class="delegate-role">${u.role}</div></div>
@@ -1756,14 +1851,14 @@ function showDelegate(){
 function delegateTo(name){
   const t=tasks.find(x=>x.id==activePanelId);if(!t)return;
   const oldWho=t.who;t.who=name;
-  extras[t.id]?.history.push({text:`Делегировано → ${name} от ${currentUser?.name}`,time:nowStr()});
+  extras[t.id]?.history.push({text:`Делегировано → ${name} от ${(currentUser?currentUser.name:'')}`,time:nowStr()});
   document.getElementById('pf-who').value=name;
   delegateVisible=false;document.getElementById('delegate-list').style.display='none';
   updateTaskInAT(t);
-  addNotif(`Задача делегирована: ${t.name.slice(0,28)}`,`${currentUser?.name} → ${name} · ${nowStr()}`,'','t-purple');
+  addNotif(`Задача делегирована: ${t.name.slice(0,28)}`,`${(currentUser?currentUser.name:'')} → ${name} · ${nowStr()}`,'','t-purple');
   toast(`Делегировано → ${name}`);
   // TG уведомление тому кому делегировали
-  const delMsg = `<b>Задача делегирована вам</b>\n\n<b>${t.name}</b>\n\nОт: ${currentUser?.name}\nСектор: ${t.sector}`;
+  const delMsg = `<b>Задача делегирована вам</b>\n\n<b>${t.name}</b>\n\nОт: ${(currentUser?currentUser.name:'')}\nСектор: ${t.sector}`;
   sendTgNotif(name, delMsg);
 }
 
@@ -1860,8 +1955,8 @@ async function createTask(){
   tasks.unshift(newTask);
   extras[id]={desc:document.getElementById('nt-desc').value,checklist:[],comments:[],history:[{text:'Задача создана',time:nowStr()}],scores:{impact:i,finance:f,urgency:u,complexity:c},nextCI:1};
   // Notify if assigned to someone else
-  if(whoVal!==currentUser?.name){
-    addNotif(`Новая задача: ${name.slice(0,28)}`,`Назначена вам от ${currentUser?.name} · ${nowStr()}`,'','t-blue');
+  if(whoVal!==(currentUser?currentUser.name:'')){
+    addNotif(`Новая задача: ${name.slice(0,28)}`,`Назначена вам от ${(currentUser?currentUser.name:'')} · ${nowStr()}`,'','t-blue');
   }
   ['nt-name','nt-desc'].forEach(x=>{const el=document.getElementById(x);if(el)el.value='';});
   const dl=document.getElementById('nt-deadline');if(dl)dl.value='';
@@ -1871,8 +1966,8 @@ async function createTask(){
   renderTasks();renderDashboard();
   await createTaskInAT(newTask);
   // Отправляем уведомление в Telegram исполнителю
-  if(whoVal !== currentUser?.name){
-    const msg = `<b>Новая задача</b>\n\n<b>${name}</b>\n\nСектор: ${newTask.sector}\nОт: ${currentUser?.name||'Руководитель'}\nДедлайн: ${newTask.deadline ? fmtDate(newTask.deadline) : 'не указан'}\nПриоритет: ${newTask.prio==='high'?'🔴 Высокий':newTask.prio==='mid'?'🟡 Средний':'🟢 Низкий'}`;
+  if(whoVal !== (currentUser?currentUser.name:'')){
+    const msg = `<b>Новая задача</b>\n\n<b>${name}</b>\n\nСектор: ${newTask.sector}\nОт: ${(currentUser?currentUser.name:'')||'Руководитель'}\nДедлайн: ${newTask.deadline ? fmtDate(newTask.deadline) : 'не указан'}\nПриоритет: ${newTask.prio==='high'?'Высокий':newTask.prio==='mid'?'Средний':'Низкий'}`;
     sendTgNotif(whoVal, msg);
   }
 }
