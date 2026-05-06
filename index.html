@@ -344,6 +344,25 @@ html,body{height:100%;overflow:hidden;font-family:'Geologica',sans-serif;backgro
 .tqa-hold{flex-shrink:0;padding:5px 11px;border-radius:10px;font-size:11px;font-weight:500;cursor:pointer;background:rgba(200,144,96,.12);color:var(--amber);border:1px solid rgba(200,144,96,.25);font-family:'Geologica',sans-serif;transition:all .2s;white-space:nowrap}
 .tqa-hold:active{background:rgba(200,144,96,.25);transform:scale(.95)}
 
+/* SCORE PILLS */
+.score-section{margin-bottom:20px}
+.score-criteria{display:flex;flex-direction:column;gap:10px}
+.sc-row{display:flex;align-items:center;gap:8px}
+.sc-label{font-size:12px;color:var(--muted);width:90px;flex-shrink:0;font-weight:300}
+.sc-pills{display:flex;gap:5px;flex:1}
+.sc-pill{flex:1;padding:7px 4px;border-radius:20px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);text-align:center;cursor:pointer;font-size:11px;font-weight:500;color:var(--muted);transition:all .18s;font-family:'Geologica',sans-serif}
+.sc-pill:active{transform:scale(.95)}
+.sc-pill.sel-low{background:rgba(106,170,136,.15);border-color:rgba(106,170,136,.35);color:#90c8a8}
+.sc-pill.sel-mid{background:rgba(200,144,96,.15);border-color:rgba(200,144,96,.35);color:#e8c090}
+.sc-pill.sel-high{background:rgba(184,96,112,.15);border-color:rgba(184,96,112,.35);color:#e8a0b0}
+.score-result{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:10px 14px;display:flex;align-items:center;gap:10px;margin-top:12px}
+.sr-total{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;line-height:1}
+.sr-label{font-size:11px;color:var(--muted);margin-top:2px;font-weight:300}
+.sr-badge{font-size:11px;font-weight:600;padding:4px 12px;border-radius:20px;margin-left:auto;letter-spacing:.2px}
+.sr-badge.high{background:rgba(184,96,112,.15);color:#e8a0b0}
+.sr-badge.mid{background:rgba(200,144,96,.15);color:#e8c090}
+.sr-badge.low{background:rgba(106,170,136,.15);color:#90c8a8}
+
 /* HOLD MENU */
 .hold-menu{display:none;margin-top:8px;animation:fadeUp .2s ease}
 .hold-menu.open{display:block}
@@ -658,12 +677,49 @@ html,body{height:100%;overflow:hidden;font-family:'Geologica',sans-serif;backgro
     <!-- SCORES -->
     <div class="pf-group">
       <div class="pf-label">Оценка задачи</div>
-      <div class="score-row"><span class="score-lbl">🎯 Влияние</span><input type="range" class="score-sl" id="ps-impact" min="1" max="5" oninput="onScoreChange()"><span class="score-num" id="psv-impact">3</span></div>
-      <div class="score-row"><span class="score-lbl">💰 Финансы</span><input type="range" class="score-sl" id="ps-finance" min="1" max="5" oninput="onScoreChange()"><span class="score-num" id="psv-finance">3</span></div>
-      <div class="score-row"><span class="score-lbl">⚡ Срочность</span><input type="range" class="score-sl" id="ps-urgency" min="1" max="5" oninput="onScoreChange()"><span class="score-num" id="psv-urgency">3</span></div>
-      <div class="score-row"><span class="score-lbl">🔧 Сложность</span><input type="range" class="score-sl" id="ps-complexity" min="1" max="5" oninput="onScoreChange()"><span class="score-num" id="psv-complexity">3</span></div>
-      <div class="score-result"><span class="score-badge" id="ps-badge">Обычная</span><span style="font-size:11px;color:var(--muted)" id="ps-score-lbl"></span></div>
-    </div>
+        <div class="score-criteria">
+          <div class="sc-row">
+            <div class="sc-label">Влияние</div>
+            <div class="sc-pills">
+              <div class="sc-pill" data-score="impact" data-val="1" onclick="setScorePill(this)">Низкое</div>
+              <div class="sc-pill sel-mid" data-score="impact" data-val="2" onclick="setScorePill(this)">Среднее</div>
+              <div class="sc-pill" data-score="impact" data-val="3" onclick="setScorePill(this)">Высокое</div>
+            </div>
+          </div>
+          <div class="sc-row">
+            <div class="sc-label">Финансы</div>
+            <div class="sc-pills">
+              <div class="sc-pill" data-score="finance" data-val="1" onclick="setScorePill(this)">Низкие</div>
+              <div class="sc-pill sel-mid" data-score="finance" data-val="2" onclick="setScorePill(this)">Средние</div>
+              <div class="sc-pill" data-score="finance" data-val="3" onclick="setScorePill(this)">Высокие</div>
+            </div>
+          </div>
+          <div class="sc-row">
+            <div class="sc-label">Срочность</div>
+            <div class="sc-pills">
+              <div class="sc-pill" data-score="urgency" data-val="1" onclick="setScorePill(this)">Низкая</div>
+              <div class="sc-pill sel-mid" data-score="urgency" data-val="2" onclick="setScorePill(this)">Средняя</div>
+              <div class="sc-pill" data-score="urgency" data-val="3" onclick="setScorePill(this)">Высокая</div>
+            </div>
+          </div>
+          <div class="sc-row">
+            <div class="sc-label">Сложность</div>
+            <div class="sc-pills">
+              <div class="sc-pill" data-score="complexity" data-val="1" onclick="setScorePill(this)">Низкая</div>
+              <div class="sc-pill sel-mid" data-score="complexity" data-val="2" onclick="setScorePill(this)">Средняя</div>
+              <div class="sc-pill" data-score="complexity" data-val="3" onclick="setScorePill(this)">Высокая</div>
+            </div>
+          </div>
+        </div>
+        <div class="score-result">
+          <div>
+            <div class="sr-label">Итог</div>
+            <div class="sr-total" id="score-total">8</div>
+          </div>
+          <div style="flex:1"></div>
+          <span class="sr-badge mid" id="score-badge">Средний эффект</span>
+        </div>
+      </div>
 
     <!-- CHECKLIST -->
     <div class="pf-group">
@@ -733,12 +789,7 @@ html,body{height:100%;overflow:hidden;font-family:'Geologica',sans-serif;backgro
     <div class="fg"><label class="flbl">Описание</label><textarea class="ftxt" id="nt-desc" placeholder="Детали..."></textarea></div>
     <div class="fg">
       <div class="flbl" style="margin-bottom:8px">Оценка → автоприоритет</div>
-      <div class="score-row"><span class="score-lbl">🎯 Влияние</span><input type="range" class="score-sl" id="ns-impact" min="1" max="5" value="3" oninput="calcScore()"><span class="score-num" id="nsv-i">3</span></div>
-      <div class="score-row"><span class="score-lbl">💰 Финансы</span><input type="range" class="score-sl" id="ns-finance" min="1" max="5" value="3" oninput="calcScore()"><span class="score-num" id="nsv-f">3</span></div>
-      <div class="score-row"><span class="score-lbl">⚡ Срочность</span><input type="range" class="score-sl" id="ns-urgency" min="1" max="5" value="3" oninput="calcScore()"><span class="score-num" id="nsv-u">3</span></div>
-      <div class="score-row"><span class="score-lbl">🔧 Сложность</span><input type="range" class="score-sl" id="ns-complexity" min="1" max="5" value="3" oninput="calcScore()"><span class="score-num" id="nsv-c">3</span></div>
-      <div class="score-result"><span class="score-badge" id="ns-badge">Обычная</span><span style="font-size:11px;color:var(--muted)" id="ns-lbl"></span><span style="font-size:10px;color:var(--muted);margin-left:auto" id="ns-prio-hint"></span></div>
-    </div>
+      
   </div>
 </div>
 </div>
@@ -1703,9 +1754,15 @@ function openPanel(id){
   document.getElementById('pf-deadline').value=t.deadline||'';
   document.getElementById('pf-prio').value=t.prio;
   document.getElementById('pf-desc').value=ex.desc||'';
-  // Scores
-  ['impact','finance','urgency','complexity'].forEach(k=>{document.getElementById('ps-'+k).value=ex.scores[k];document.getElementById('psv-'+k).textContent=ex.scores[k];});
-  onScoreChange();
+  // Scores — пилюли
+  const sc_=extras[t.id]?.scores||{impact:2,finance:2,urgency:2,complexity:2};
+  ['impact','finance','urgency','complexity'].forEach(k=>{
+    document.querySelectorAll('[data-score="'+k+'"]').forEach(p=>p.classList.remove('sel-low','sel-mid','sel-high'));
+    const v_=sc_[k]||2;
+    const pill_=document.querySelector('[data-score="'+k+'"][data-val="'+v_+'"]');
+    if(pill_) pill_.classList.add(v_===1?'sel-low':v_===2?'sel-mid':'sel-high');
+  });
+  calcScore();
   // Delegate visibility
   const ds=document.getElementById('delegate-section');
   if(ds)ds.style.display=currentUser&&currentUser.isManager?'block':'none';
@@ -1937,47 +1994,43 @@ function openNewTask(){
 }
 function openNewIdea(){openModal('idea');}
 
-function calcScore(){
-  const i=+(document.getElementById('ns-impact')||{value:3}).value;
-  const f=+(document.getElementById('ns-finance')||{value:3}).value;
-  const u=+(document.getElementById('ns-urgency')||{value:3}).value;
-  const c=+(document.getElementById('ns-complexity')||{value:3}).value;
-  ['i','f','u','c'].forEach((k,idx)=>{const el=document.getElementById('nsv-'+k);if(el)el.textContent=[i,f,u,c][idx];});
-  const {s,label,color,prio}=scoreCalc(i,f,u,c);
-  const b=document.getElementById('ns-badge'),l=document.getElementById('ns-lbl'),h=document.getElementById('ns-prio-hint');
-  if(b){b.textContent=label;b.style.background=color+'22';b.style.color=color;}
-  if(l)l.textContent=`${s.toFixed(1)}`;
-  if(h)h.textContent=`→ ${prio==='high'?'Высокий':prio==='mid'?'Средний':'Низкий'}`;
-  const ps=document.getElementById('nt-prio');if(ps)ps.value=prio;
+function setScorePill(el){
+  const scoreKey = el.dataset.score;
+  const val = parseInt(el.dataset.val);
+  // Снимаем выделение со всех пилюль этого критерия
+  document.querySelectorAll(`[data-score="${scoreKey}"]`).forEach(p=>{
+    p.classList.remove('sel-low','sel-mid','sel-high');
+  });
+  // Ставим нужный класс
+  const cls = val===1?'sel-low':val===2?'sel-mid':'sel-high';
+  el.classList.add(cls);
+  // Обновляем оценку задачи
+  calcScore();
 }
 
-async function createTask(){
-  const name=document.getElementById('nt-name').value.trim();
-  if(!name){toast('Введите название задачи');return;}
-  const id='local_'+nextTaskId++;
-  const i=+(document.getElementById('ns-impact').value);
-  const f=+(document.getElementById('ns-finance').value);
-  const u=+(document.getElementById('ns-urgency').value);
-  const c=+(document.getElementById('ns-complexity').value);
-  const whoVal=document.getElementById('nt-who').value;
-  const newTask={id,atId:null,name,sector:document.getElementById('nt-sector').value,who:whoVal,deadline:document.getElementById('nt-deadline').value,prio:document.getElementById('nt-prio').value,status:document.getElementById('nt-status').value,tags:[],overdue:false};
-  tasks.unshift(newTask);
-  extras[id]={desc:document.getElementById('nt-desc').value,checklist:[],comments:[],history:[{text:'Задача создана',time:nowStr()}],scores:{impact:i,finance:f,urgency:u,complexity:c},nextCI:1};
-  // Notify if assigned to someone else
-  if(whoVal!==(currentUser?currentUser.name:'')){
-    addNotif(`Новая задача: ${name.slice(0,28)}`,`Назначена вам от ${(currentUser?currentUser.name:'')} · ${nowStr()}`,'','t-blue');
+
+
+function calcScore(){
+  const vals = {impact:2, finance:2, urgency:2, complexity:2};
+  ['impact','finance','urgency','complexity'].forEach(k=>{
+    const sel = document.querySelector(`.sc-pill[data-score="${k}"].sel-low, .sc-pill[data-score="${k}"].sel-mid, .sc-pill[data-score="${k}"].sel-high`);
+    if(sel) vals[k] = parseInt(sel.dataset.val);
+  });
+  const total = vals.impact + vals.finance + vals.urgency + vals.complexity;
+  const max = 12;
+  // Обновляем в extras
+  if(activePanelId && extras[activePanelId]){
+    extras[activePanelId].scores = vals;
   }
-  ['nt-name','nt-desc'].forEach(x=>{const el=document.getElementById(x);if(el)el.value='';});
-  const dl=document.getElementById('nt-deadline');if(dl)dl.value='';
-  closeModal('task');
-  toast(`✓ Задача «${name.slice(0,25)}» создана`);
-  filterSector='';filterStatus='';tasks._whoFilter='';
-  renderTasks();renderDashboard();
-  await createTaskInAT(newTask);
-  // Отправляем уведомление в Telegram исполнителю
-  if(whoVal !== (currentUser?currentUser.name:'')){
-    const msg = `<b>Новая задача</b>\n\n<b>${name}</b>\n\nСектор: ${newTask.sector}\nОт: ${(currentUser?currentUser.name:'')||'Руководитель'}\nДедлайн: ${newTask.deadline ? fmtDate(newTask.deadline) : 'не указан'}\nПриоритет: ${newTask.prio==='high'?'Высокий':newTask.prio==='mid'?'Средний':'Низкий'}`;
-    sendTgNotif(whoVal, msg);
+  // Отображаем результат
+  const totalEl = document.getElementById('score-total');
+  const badgeEl = document.getElementById('score-badge');
+  if(totalEl) totalEl.textContent = total;
+  if(badgeEl){
+    const pct = total/max;
+    if(pct>=0.67){ badgeEl.textContent='Высокий эффект'; badgeEl.className='sr-badge high'; }
+    else if(pct>=0.34){ badgeEl.textContent='Средний эффект'; badgeEl.className='sr-badge mid'; }
+    else { badgeEl.textContent='Низкий эффект'; badgeEl.className='sr-badge low'; }
   }
 }
 
